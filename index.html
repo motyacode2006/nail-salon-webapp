@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Запись на маникюр</title>
+    <!-- Подключаем стили -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Подключаем Telegram WebApp API -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок -->
+        <header class="header">
+            <h1>💅 Запись на процедуру</h1>
+            <p class="subtitle">Выберите услугу и удобное время</p>
+        </header>
+
+        <!-- Форма записи -->
+        <form id="booking-form" class="booking-form">
+            <!-- Выбор услуги -->
+            <div class="form-group">
+                <label for="service">
+                    <span class="label-icon">💅</span>
+                    Выберите услугу
+                </label>
+                <select id="service" name="service" required>
+                    <option value="">-- Выберите услугу --</option>
+                    <option value="Маникюр (60 мин, 1500 руб)">
+                        Маникюр (60 мин, 1500 руб)
+                    </option>
+                    <option value="Педикюр (90 мин, 2500 руб)">
+                        Педикюр (90 мин, 2500 руб)
+                    </option>
+                    <option value="Покрытие гель-лак (45 мин, 800 руб)">
+                        Покрытие гель-лак (45 мин, 800 руб)
+                    </option>
+                </select>
+            </div>
+
+            <!-- Выбор даты -->
+            <div class="form-group">
+                <label for="date">
+                    <span class="label-icon">📅</span>
+                    Выберите дату
+                </label>
+                <input 
+                    type="date" 
+                    id="date" 
+                    name="date" 
+                    required
+                    min=""
+                >
+            </div>
+
+            <!-- Выбор времени -->
+            <div class="form-group">
+                <label for="time">
+                    <span class="label-icon">⏰</span>
+                    Выберите время
+                </label>
+                <select id="time" name="time" required>
+                    <option value="">-- Выберите время --</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:30">11:30</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:30">14:30</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:30">17:30</option>
+                    <option value="19:00">19:00</option>
+                </select>
+            </div>
+
+            <!-- Информация о выбранной услуге -->
+            <div id="service-info" class="service-info hidden">
+                <h3>Информация об услуге</h3>
+                <div id="service-details"></div>
+            </div>
+
+            <!-- Кнопка отправки -->
+            <button type="submit" id="submit-btn" class="submit-btn">
+                <span class="btn-icon">✅</span>
+                Записаться
+            </button>
+        </form>
+
+        <!-- Подсказка -->
+        <div class="hint">
+            <p>💡 Если нужно перенести или отменить запись, свяжитесь с мастером</p>
+        </div>
+    </div>
+
+    <!-- Индикатор загрузки -->
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Отправка данных...</p>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
