@@ -159,6 +159,80 @@
             box-shadow: var(--shadow);
         }
         
+        /* CSS Fallback Logo - Metallic Style with Drip Effect */
+        .logo-fallback {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+        
+        .logo-fallback.visible {
+            display: flex;
+        }
+        
+        .logo-text-metallic {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background: linear-gradient(
+                135deg,
+                #ffffff 0%,
+                #e8d5e0 20%,
+                #d4b8c8 40%,
+                #c4a0b8 60%,
+                #b890a8 80%,
+                #a880a0 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(2px 3px 4px rgba(79, 50, 106, 0.5));
+            position: relative;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { filter: drop-shadow(2px 3px 4px rgba(79, 50, 106, 0.5)); }
+            50% { filter: drop-shadow(2px 3px 8px rgba(79, 50, 106, 0.7)); }
+        }
+        
+        /* Drip effects */
+        .logo-drips {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 8px;
+        }
+        
+        .drip {
+            width: 4px;
+            background: linear-gradient(180deg, #e8d5e0 0%, #b890a8 100%);
+            border-radius: 0 0 4px 4px;
+            animation: drip 2s ease-in-out infinite;
+        }
+        
+        .drip:nth-child(1) { height: 20px; animation-delay: 0s; }
+        .drip:nth-child(2) { height: 15px; animation-delay: 0.3s; }
+        .drip:nth-child(3) { height: 25px; animation-delay: 0.6s; }
+        .drip:nth-child(4) { height: 12px; animation-delay: 0.2s; }
+        .drip:nth-child(5) { height: 18px; animation-delay: 0.5s; }
+        
+        @keyframes drip {
+            0%, 100% { transform: scaleY(1); opacity: 0.7; }
+            50% { transform: scaleY(1.3); opacity: 1; }
+        }
+        
+        .logo-emoji-fallback {
+            font-size: 2rem;
+            margin-top: 12px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
         .header-content {
             padding: 16px 20px;
             text-align: center;
@@ -803,7 +877,21 @@
         <!-- Header with Logo -->
         <header class="header">
             <div class="header-logo">
-                <img src="gonails.jpg" alt="GoNails" class="logo-image">
+                <!-- Real logo image -->
+                <img src="gonails.jpg" alt="GoNails" class="logo-image" id="logo-image">
+                
+                <!-- CSS Fallback Logo (shown if image fails to load) -->
+                <div class="logo-fallback" id="logo-fallback">
+                    <span class="logo-text-metallic">GoNails</span>
+                    <div class="logo-drips">
+                        <div class="drip"></div>
+                        <div class="drip"></div>
+                        <div class="drip"></div>
+                        <div class="drip"></div>
+                        <div class="drip"></div>
+                    </div>
+                    <span class="logo-emoji-fallback">💅</span>
+                </div>
             </div>
             <div class="header-content">
                 <h1 class="header-title">Запись на маникюр 💅</h1>
@@ -905,6 +993,36 @@
     </div>
     
     <script>
+        // ========================================
+        // Logo Loading Handler
+        // ========================================
+        const logoImage = document.getElementById('logo-image');
+        const logoFallback = document.getElementById('logo-fallback');
+        
+        // Handle successful image load
+        logoImage.onload = function() {
+            console.log('✅ Логотип gonails.jpg успешно загружен');
+            logoImage.style.display = 'block';
+            logoFallback.classList.remove('visible');
+        };
+        
+        // Handle image load error
+        logoImage.onerror = function() {
+            console.warn('⚠️ Логотип gonails.jpg не найден, показываем CSS-логотип');
+            logoImage.style.display = 'none';
+            logoFallback.classList.add('visible');
+        };
+        
+        // Check if image is already cached (loaded before JS)
+        if (logoImage.complete && logoImage.naturalHeight !== 0) {
+            console.log('✅ Логотип gonails.jpg загружен из кэша');
+            logoImage.style.display = 'block';
+        } else if (logoImage.complete && logoImage.naturalHeight === 0) {
+            console.warn('⚠️ Логотип gonails.jpg не найден (cached error)');
+            logoImage.style.display = 'none';
+            logoFallback.classList.add('visible');
+        }
+        
         // ========================================
         // Telegram WebApp Initialization
         // ========================================
