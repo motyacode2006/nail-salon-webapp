@@ -3,101 +3,1313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Запись на маникюр</title>
-    <!-- Подключаем стили -->
-    <link rel="stylesheet" href="style.css">
-    <!-- Подключаем Telegram WebApp API -->
+    <title>GoNails - Запись на маникюр</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Telegram WebApp API -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        /* ========================================
+           CSS Variables - GoNails Color Palette
+           ======================================== */
+        :root {
+            /* Palette Colors */
+            --color-1: #905963;
+            --color-2: #b47f7c;
+            --color-3: #b68da4;
+            --color-4: #6c425e;
+            --color-5: #4f326a;
+            
+            /* Banner/Header */
+            --banner-bg: #b68da4ee;
+            --banner-text: #4f326a;
+            --banner-border: rgba(182, 141, 164, 0.3);
+            
+            /* Main Background */
+            --main-bg: #b68da4;
+            
+            /* Header */
+            --header-bg: linear-gradient(135deg, #b68da4 0%, #996083 50%, #6c425e 100%);
+            --header-border: rgba(182, 141, 164, 0.3);
+            --header-badge-bg: rgba(182, 141, 164, 0.3);
+            --header-badge-text: #4f326a;
+            --header-title-text: #4f326a;
+            --header-desc-text: #4f326a;
+            
+            /* Hero/Form */
+            --hero-title-color: #4f326a;
+            --hero-desc-color: #6c425e;
+            --primary-button-bg: #4f326a;
+            --primary-button-text: #b68da4;
+            --secondary-button-bg: #b68da4;
+            --secondary-button-text: #4f326a;
+            --secondary-button-border: #b68da4;
+            
+            /* Features/Services */
+            --feature-title-color: #4f326a;
+            --feature-desc-color: #6c425e;
+            --feature-card-bg: #b47f7c;
+            --feature-card-border: rgba(182, 141, 164, 0.4);
+            --feature-icon-bg: #4f326a;
+            
+            /* Palette/Other */
+            --palette-title-color: #4f326a;
+            --palette-desc-color: #6c425e;
+            --palette-card-bg: #b68da4;
+            --palette-label-color: #4f326a;
+            --palette-border: rgba(182, 141, 164, 0.2);
+            
+            /* CTA */
+            --cta-bg: linear-gradient(135deg, #b68da4 0%, #4f326a 100%);
+            --cta-title-text: #4f326a;
+            
+            /* Footer */
+            --footer-border: rgba(182, 141, 164, 0.2);
+            --footer-text: #6c425e;
+            --footer-link-color: #4f326a;
+            
+            /* Additional */
+            --success-bg: #d4f4d4;
+            --error-bg: #ffcccc;
+            --shadow: 0 8px 32px rgba(79, 50, 106, 0.2);
+            --shadow-sm: 0 4px 16px rgba(79, 50, 106, 0.15);
+            --shadow-lg: 0 12px 48px rgba(79, 50, 106, 0.25);
+            
+            /* Typography */
+            --font-heading: 'Playfair Display', Georgia, serif;
+            --font-body: 'Poppins', system-ui, -apple-system, sans-serif;
+        }
+        
+        /* ========================================
+           Reset & Base Styles
+           ======================================== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.6;
+            letter-spacing: 0.02em;
+            color: var(--hero-desc-color);
+            background: linear-gradient(180deg, var(--main-bg) 0%, #996083 50%, var(--color-4) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* ========================================
+           App Container
+           ======================================== */
+        .app {
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* ========================================
+           Header with Logo
+           ======================================== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--header-border);
+            box-shadow: var(--shadow);
+            transform: translateY(-100%);
+            animation: slideDown 0.6s ease forwards;
+        }
+        
+        @keyframes slideDown {
+            to { transform: translateY(0); }
+        }
+        
+        .header-logo {
+            width: 100%;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #b68da4 0%, #996083 50%, #6c425e 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Logo Image */
+        .logo-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+        
+        .header-content {
+            padding: 16px 20px;
+            text-align: center;
+            background: rgba(182, 141, 164, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-title {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--header-title-text);
+            margin-bottom: 4px;
+        }
+        
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            background: var(--header-badge-bg);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--header-badge-text);
+            font-weight: 500;
+        }
+        
+        /* ========================================
+           Main Content
+           ======================================== */
+        .main {
+            flex: 1;
+            padding-top: 280px;
+            padding-bottom: 100px;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        
+        /* ========================================
+           Hero Section
+           ======================================== */
+        .hero {
+            padding: 24px 0;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s ease 0.3s forwards;
+        }
+        
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--hero-title-color);
+            margin-bottom: 12px;
+        }
+        
+        .hero-desc {
+            font-size: 1rem;
+            color: var(--hero-desc-color);
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        
+        /* ========================================
+           Services Section
+           ======================================== */
+        .services {
+            padding: 24px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s ease 0.5s forwards;
+        }
+        
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--feature-title-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title::before {
+            content: '💅';
+            font-size: 1.3rem;
+        }
+        
+        .services-grid {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .service-card {
+            background: var(--feature-card-bg);
+            border: 1px solid var(--feature-card-border);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .service-card:hover::before {
+            opacity: 1;
+        }
+        
+        .service-card.selected {
+            border-color: var(--primary-button-bg);
+            box-shadow: 0 0 0 2px var(--primary-button-bg);
+        }
+        
+        .service-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-button-bg);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .service-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--feature-icon-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .service-info {
+            flex: 1;
+        }
+        
+        .service-name {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--feature-title-color);
+        }
+        
+        .service-duration {
+            font-size: 0.85rem;
+            color: var(--feature-desc-color);
+        }
+        
+        .service-price {
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-button-bg);
+        }
+        
+        /* ========================================
+           Date & Time Section
+           ======================================== */
+        .datetime {
+            padding: 24px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s ease 0.7s forwards;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: var(--palette-label-color);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--header-title-text);
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid var(--secondary-button-border);
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--primary-button-bg);
+            box-shadow: 0 0 0 4px rgba(79, 50, 106, 0.15);
+        }
+        
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234f326a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 44px;
+        }
+        
+        /* Time slots grid */
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        
+        .time-slot {
+            padding: 10px 8px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid var(--secondary-button-border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--secondary-button-text);
+        }
+        
+        .time-slot:hover {
+            border-color: var(--primary-button-bg);
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        .time-slot.selected {
+            background: var(--primary-button-bg);
+            border-color: var(--primary-button-bg);
+            color: var(--primary-button-text);
+        }
+        
+        /* ========================================
+           Contact Info Section
+           ======================================== */
+        .contact-info {
+            padding: 24px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s ease 0.9s forwards;
+        }
+        
+        .contact-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--palette-border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--palette-border);
+        }
+        
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+        
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--cta-bg);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .contact-text {
+            flex: 1;
+        }
+        
+        .contact-label {
+            font-size: 0.85rem;
+            color: var(--feature-desc-color);
+        }
+        
+        .contact-value {
+            font-weight: 500;
+            color: var(--header-title-text);
+        }
+        
+        /* ========================================
+           Submit Button
+           ======================================== */
+        .submit-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(0deg, rgba(182, 141, 164, 1) 0%, rgba(182, 141, 164, 0.9) 80%, transparent 100%);
+            z-index: 90;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 32px;
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-button-text);
+            background: var(--primary-button-bg);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+        
+        .submit-btn:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+        
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .submit-btn .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ========================================
+           Success Modal
+           ======================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(79, 50, 106, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 340px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+        
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--cta-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 20px;
+            animation: pulse 1s ease infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--hero-title-color);
+            margin-bottom: 12px;
+        }
+        
+        .modal-text {
+            color: var(--hero-desc-color);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-button-text);
+            background: var(--primary-button-bg);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn:hover {
+            filter: brightness(1.1);
+        }
+        
+        /* ========================================
+           Confetti Canvas
+           ======================================== */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 250;
+        }
+        
+        /* ========================================
+           Footer
+           ======================================== */
+        .footer {
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid var(--footer-border);
+            background: rgba(255, 255, 255, 0.5);
+            margin-top: auto;
+        }
+        
+        .footer-text {
+            font-size: 0.85rem;
+            color: var(--footer-text);
+            margin-bottom: 8px;
+        }
+        
+        .footer-link {
+            color: var(--footer-link-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            opacity: 0.8;
+        }
+        
+        /* ========================================
+           Responsive Design
+           ======================================== */
+        @media (min-width: 768px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header-logo {
+                height: 220px;
+            }
+            
+            .main {
+                padding-top: 320px;
+            }
+            
+            .time-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .time-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .service-name {
+                font-size: 1rem;
+            }
+        }
+        
+        /* ========================================
+           Dark Theme Support (Telegram)
+           ======================================== */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --main-bg: #4a3548;
+                --feature-card-bg: rgba(180, 127, 124, 0.3);
+                --palette-card-bg: rgba(182, 141, 164, 0.2);
+            }
+            
+            body {
+                background: linear-gradient(180deg, #4a3548 0%, #3d2840 50%, #2d1f35 100%);
+            }
+            
+            .form-input,
+            .form-select,
+            .time-slot {
+                background: rgba(60, 40, 60, 0.9);
+                color: #f0e0e8;
+            }
+            
+            .contact-card {
+                background: rgba(60, 40, 60, 0.85);
+            }
+        }
+        
+        /* ========================================
+           Loading State
+           ======================================== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--header-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        .loading-text {
+            color: white;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Заголовок -->
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading">
+        <div class="loader"></div>
+        <div class="loading-text">Загрузка...</div>
+    </div>
+    
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+    
+    <!-- App Container -->
+    <div class="app">
+        <!-- Header with Logo -->
         <header class="header">
-            <h1>💅 Запись на процедуру</h1>
-            <p class="subtitle">Выберите услугу и удобное время</p>
+            <div class="header-logo">
+                <img src="gonails.jpg" alt="GoNails" class="logo-image">
+            </div>
+            <div class="header-content">
+                <h1 class="header-title">Запись на маникюр 💅</h1>
+                <div class="header-badge">
+                    ✨ Премиум сервис
+                </div>
+            </div>
         </header>
-
-        <!-- Форма записи -->
-        <form id="booking-form" class="booking-form">
-            <!-- Выбор услуги -->
-            <div class="form-group">
-                <label for="service">
-                    <span class="label-icon">💅</span>
-                    Выберите услугу
-                </label>
-                <select id="service" name="service" required>
-                    <option value="">-- Выберите услугу --</option>
-                    <option value="Маникюр (60 мин, 1500 руб)">
-                        Маникюр (60 мин, 1500 руб)
-                    </option>
-                    <option value="Педикюр (90 мин, 2500 руб)">
-                        Педикюр (90 мин, 2500 руб)
-                    </option>
-                    <option value="Покрытие гель-лак (45 мин, 800 руб)">
-                        Покрытие гель-лак (45 мин, 800 руб)
-                    </option>
-                </select>
+        
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Hero Section -->
+                <section class="hero">
+                    <h2 class="hero-title">Создайте свой идеальный образ</h2>
+                    <p class="hero-desc">Выберите услугу, удобную дату и время. Мы сделаем ваши ногти неотразимыми!</p>
+                </section>
+                
+                <!-- Services Section -->
+                <section class="services">
+                    <h3 class="section-title">Выберите услугу</h3>
+                    <div class="services-grid" id="services-grid">
+                        <!-- Services will be rendered by JS -->
+                    </div>
+                </section>
+                
+                <!-- Date & Time Section -->
+                <section class="datetime">
+                    <h3 class="section-title">Дата и время</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📅 Выберите дату</label>
+                        <input type="date" class="form-input" id="date-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">⏰ Выберите время</label>
+                        <div class="time-grid" id="time-grid">
+                            <!-- Time slots will be rendered by JS -->
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Contact Info -->
+                <section class="contact-info">
+                    <h3 class="section-title">Контакты</h3>
+                    <div class="contact-card">
+                        <div class="contact-item">
+                            <div class="contact-icon">📍</div>
+                            <div class="contact-text">
+                                <div class="contact-label">Адрес</div>
+                                <div class="contact-value">ул. Примерная, 123</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">📱</div>
+                            <div class="contact-text">
+                                <div class="contact-label">Телефон</div>
+                                <div class="contact-value">+7 (999) 123-45-67</div>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">⏰</div>
+                            <div class="contact-text">
+                                <div class="contact-label">Время работы</div>
+                                <div class="contact-value">10:00 - 20:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
-
-            <!-- Выбор даты -->
-            <div class="form-group">
-                <label for="date">
-                    <span class="label-icon">📅</span>
-                    Выберите дату
-                </label>
-                <input 
-                    type="date" 
-                    id="date" 
-                    name="date" 
-                    required
-                    min=""
-                >
-            </div>
-
-            <!-- Выбор времени -->
-            <div class="form-group">
-                <label for="time">
-                    <span class="label-icon">⏰</span>
-                    Выберите время
-                </label>
-                <select id="time" name="time" required>
-                    <option value="">-- Выберите время --</option>
-                    <option value="10:00">10:00</option>
-                    <option value="11:30">11:30</option>
-                    <option value="13:00">13:00</option>
-                    <option value="14:30">14:30</option>
-                    <option value="16:00">16:00</option>
-                    <option value="17:30">17:30</option>
-                    <option value="19:00">19:00</option>
-                </select>
-            </div>
-
-            <!-- Информация о выбранной услуге -->
-            <div id="service-info" class="service-info hidden">
-                <h3>Информация об услуге</h3>
-                <div id="service-details"></div>
-            </div>
-
-            <!-- Кнопка отправки -->
-            <button type="submit" id="submit-btn" class="submit-btn">
-                <span class="btn-icon">✅</span>
-                Записаться
+        </main>
+        
+        <!-- Submit Button -->
+        <div class="submit-section">
+            <button class="submit-btn" id="submit-btn" disabled>
+                <span class="btn-text">💅 Записаться</span>
             </button>
-        </form>
-
-        <!-- Подсказка -->
-        <div class="hint">
-            <p>💡 Если нужно перенести или отменить запись, свяжитесь с мастером</p>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-text">© 2024 GoNails. Все права защищены.</p>
+            <a href="#" class="footer-link" id="share-btn">📤 Поделиться в Telegram</a>
+        </footer>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal">
+            <div class="modal-icon">💅</div>
+            <h3 class="modal-title">Запись создана!</h3>
+            <p class="modal-text" id="modal-text">
+                Мы ждём вас!<br>
+                Подтверждение отправлено в Telegram.
+            </p>
+            <button class="modal-btn" id="modal-close-btn">Отлично!</button>
         </div>
     </div>
-
-    <!-- Индикатор загрузки -->
-    <div id="loading" class="loading hidden">
-        <div class="spinner"></div>
-        <p>Отправка данных...</p>
-    </div>
-
-    <!-- Подключаем JavaScript -->
-    <script src="script.js"></script>
+    
+    <script>
+        // ========================================
+        // Telegram WebApp Initialization
+        // ========================================
+        const tg = window.Telegram.WebApp;
+        
+        // Initialize WebApp
+        tg.ready();
+        tg.expand();
+        
+        // Set theme colors
+        if (tg.themeParams) {
+            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#b68da4');
+            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#4f326a');
+        }
+        
+        // ========================================
+        // Services Data
+        // ========================================
+        const services = [
+            {
+                id: 'manicure',
+                name: 'Маникюр классический',
+                duration: '60 мин',
+                price: 1500,
+                icon: '💅'
+            },
+            {
+                id: 'pedicure',
+                name: 'Педикюр',
+                duration: '90 мин',
+                price: 2500,
+                icon: '🦶'
+            },
+            {
+                id: 'gel',
+                name: 'Покрытие гель-лак',
+                duration: '45 мин',
+                price: 800,
+                icon: '✨'
+            },
+            {
+                id: 'design',
+                name: 'Дизайн ногтей',
+                duration: '30 мин',
+                price: 500,
+                icon: '🎨'
+            },
+            {
+                id: 'extensions',
+                name: 'Наращивание',
+                duration: '120 мин',
+                price: 3000,
+                icon: '💎'
+            },
+            {
+                id: 'correction',
+                name: 'Коррекция',
+                duration: '60 мин',
+                price: 1200,
+                icon: '🔧'
+            }
+        ];
+        
+        const timeSlots = [
+            '10:00', '10:30', '11:00', '11:30',
+            '12:00', '12:30', '13:00', '13:30',
+            '14:00', '14:30', '15:00', '15:30',
+            '16:00', '16:30', '17:00', '17:30',
+            '18:00', '18:30', '19:00', '19:30'
+        ];
+        
+        // ========================================
+        // State Management
+        // ========================================
+        const state = {
+            selectedService: null,
+            selectedDate: null,
+            selectedTime: null
+        };
+        
+        // ========================================
+        // DOM Elements
+        // ========================================
+        const servicesGrid = document.getElementById('services-grid');
+        const timeGrid = document.getElementById('time-grid');
+        const dateInput = document.getElementById('date-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const successModal = document.getElementById('success-modal');
+        const modalText = document.getElementById('modal-text');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const loadingOverlay = document.getElementById('loading');
+        const shareBtn = document.getElementById('share-btn');
+        
+        // ========================================
+        // Render Services
+        // ========================================
+        function renderServices() {
+            servicesGrid.innerHTML = services.map(service => `
+                <div class="service-card" data-service-id="${service.id}">
+                    <div class="service-header">
+                        <div class="service-icon">${service.icon}</div>
+                        <div class="service-info">
+                            <div class="service-name">${service.name}</div>
+                            <div class="service-duration">⏱ ${service.duration}</div>
+                        </div>
+                    </div>
+                    <div class="service-price">${service.price} ₽</div>
+                </div>
+            `).join('');
+            
+            // Add click handlers
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.addEventListener('click', () => selectService(card.dataset.serviceId));
+            });
+        }
+        
+        // ========================================
+        // Render Time Slots
+        // ========================================
+        function renderTimeSlots() {
+            timeGrid.innerHTML = timeSlots.map(time => `
+                <div class="time-slot" data-time="${time}">${time}</div>
+            `).join('');
+            
+            // Add click handlers
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.addEventListener('click', () => selectTime(slot.dataset.time));
+            });
+        }
+        
+        // ========================================
+        // Selection Handlers
+        // ========================================
+        function selectService(serviceId) {
+            state.selectedService = services.find(s => s.id === serviceId);
+            
+            // Update UI
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.serviceId === serviceId);
+            });
+            
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.selectionChanged();
+            }
+            
+            updateSubmitButton();
+        }
+        
+        function selectTime(time) {
+            state.selectedTime = time;
+            
+            // Update UI
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.toggle('selected', slot.dataset.time === time);
+            });
+            
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.selectionChanged();
+            }
+            
+            updateSubmitButton();
+        }
+        
+        function handleDateChange(e) {
+            state.selectedDate = e.target.value;
+            
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.selectionChanged();
+            }
+            
+            updateSubmitButton();
+        }
+        
+        // ========================================
+        // Update Submit Button
+        // ========================================
+        function updateSubmitButton() {
+            const isValid = state.selectedService && state.selectedDate && state.selectedTime;
+            submitBtn.disabled = !isValid;
+            
+            if (isValid) {
+                submitBtn.querySelector('.btn-text').textContent = 
+                    `💅 Записаться — ${state.selectedService.price} ₽`;
+            } else {
+                submitBtn.querySelector('.btn-text').textContent = '💅 Записаться';
+            }
+        }
+        
+        // ========================================
+        // Set Min Date
+        // ========================================
+        function setMinDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            dateInput.min = `${year}-${month}-${day}`;
+            dateInput.value = `${year}-${month}-${day}`;
+            state.selectedDate = dateInput.value;
+        }
+        
+        // ========================================
+        // Submit Handler
+        // ========================================
+        async function handleSubmit() {
+            if (!state.selectedService || !state.selectedDate || !state.selectedTime) {
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner"></div><span>Отправка...</span>';
+            
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+            
+            // Prepare data
+            const data = {
+                service: state.selectedService.name,
+                serviceId: state.selectedService.id,
+                price: state.selectedService.price,
+                date: state.selectedDate,
+                time: state.selectedTime
+            };
+            
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Send data to Telegram bot
+            try {
+                tg.sendData(JSON.stringify(data));
+                
+                // Show success modal
+                showSuccessModal(data);
+                
+            } catch (error) {
+                console.error('Error sending data:', error);
+                
+                // Show error
+                if (tg.showAlert) {
+                    tg.showAlert('Произошла ошибка. Попробуйте ещё раз.');
+                }
+                
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="btn-text">💅 Записаться</span>';
+            }
+        }
+        
+        // ========================================
+        // Success Modal
+        // ========================================
+        function showSuccessModal(data) {
+            // Format date
+            const dateObj = new Date(data.date);
+            const dateFormatted = dateObj.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                weekday: 'short'
+            });
+            
+            // Update modal text
+            modalText.innerHTML = `
+                <strong>${data.service}</strong><br>
+                📅 ${dateFormatted}<br>
+                ⏰ ${data.time}<br>
+                💰 ${data.price} ₽
+            `;
+            
+            // Show modal
+            successModal.classList.add('active');
+            
+            // Launch confetti
+            launchConfetti();
+            
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+        
+        function closeSuccessModal() {
+            successModal.classList.remove('active');
+            
+            // Close WebApp
+            tg.close();
+        }
+        
+        // ========================================
+        // Confetti Animation
+        // ========================================
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const colors = ['#905963', '#b47f7c', '#b68da4', '#6c425e', '#4f326a', '#fff'];
+            
+            // Create particles
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 8 + 4,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+            
+            let animationFrame;
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                let activeParticles = 0;
+                
+                particles.forEach(p => {
+                    if (p.y < canvas.height + 50) {
+                        activeParticles++;
+                        
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rotation * Math.PI / 180);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                        ctx.restore();
+                        
+                        p.y += p.speedY;
+                        p.x += p.speedX;
+                        p.rotation += p.rotationSpeed;
+                    }
+                });
+                
+                if (activeParticles > 0) {
+                    animationFrame = requestAnimationFrame(animate);
+                } else {
+                    cancelAnimationFrame(animationFrame);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            
+            animate();
+        }
+        
+        // ========================================
+        // Share to Telegram
+        // ========================================
+        function handleShare(e) {
+            e.preventDefault();
+            const text = '💅 Записалась в GoNails! Лучший маникюр в городе!';
+            
+            if (tg.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/share/url?text=${encodeURIComponent(text)}`);
+            }
+        }
+        
+        // ========================================
+        // Initialize App
+        // ========================================
+        function init() {
+            // Render components
+            renderServices();
+            renderTimeSlots();
+            setMinDate();
+            
+            // Event listeners
+            dateInput.addEventListener('change', handleDateChange);
+            submitBtn.addEventListener('click', handleSubmit);
+            modalCloseBtn.addEventListener('click', closeSuccessModal);
+            shareBtn.addEventListener('click', handleShare);
+            
+            // Setup MainButton (Telegram native button)
+            if (tg.MainButton) {
+                tg.MainButton.setText('💅 Записаться');
+                tg.MainButton.show();
+                tg.MainButton.onClick(handleSubmit);
+            }
+            
+            // Hide loading overlay
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+            }, 500);
+            
+            // Log user info (for debugging)
+            console.log('WebApp initialized');
+            console.log('Platform:', tg.platform);
+            console.log('Version:', tg.version);
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                console.log('User:', tg.initDataUnsafe.user);
+            }
+        }
+        
+        // Run initialization
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
