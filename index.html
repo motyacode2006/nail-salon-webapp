@@ -4,1219 +4,346 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GoNails - Запись на маникюр</title>
-    
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Telegram WebApp API -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <style>
-        /* ========================================
-           CSS Variables - GoNails Color Palette
-           ======================================== */
         :root {
-            /* Palette Colors */
-            --color-1: #905963;
-            --color-2: #b47f7c;
-            --color-3: #b68da4;
-            --color-4: #6c425e;
-            --color-5: #4f326a;
-            
-            /* Banner/Header */
-            --banner-bg: #b68da4ee;
-            --banner-text: #4f326a;
-            --banner-border: rgba(182, 141, 164, 0.3);
-            
-            /* Main Background */
-            --main-bg: #b68da4;
-            
-            /* Header */
-            --header-bg: linear-gradient(135deg, #b68da4 0%, #996083 50%, #6c425e 100%);
-            --header-border: rgba(182, 141, 164, 0.3);
-            --header-badge-bg: rgba(182, 141, 164, 0.3);
-            --header-badge-text: #4f326a;
-            --header-title-text: #4f326a;
-            --header-desc-text: #4f326a;
-            
-            /* Hero/Form */
-            --hero-title-color: #4f326a;
-            --hero-desc-color: #6c425e;
-            --primary-button-bg: #4f326a;
-            --primary-button-text: #b68da4;
-            --secondary-button-bg: #b68da4;
-            --secondary-button-text: #4f326a;
-            --secondary-button-border: #b68da4;
-            
-            /* Features/Services */
-            --feature-title-color: #4f326a;
-            --feature-desc-color: #6c425e;
-            --feature-card-bg: #b47f7c;
-            --feature-card-border: rgba(182, 141, 164, 0.4);
-            --feature-icon-bg: #4f326a;
-            
-            /* Palette/Other */
-            --palette-title-color: #4f326a;
-            --palette-desc-color: #6c425e;
-            --palette-card-bg: #b68da4;
-            --palette-label-color: #4f326a;
-            --palette-border: rgba(182, 141, 164, 0.2);
-            
-            /* CTA */
-            --cta-bg: linear-gradient(135deg, #b68da4 0%, #4f326a 100%);
-            --cta-title-text: #4f326a;
-            
-            /* Footer */
-            --footer-border: rgba(182, 141, 164, 0.2);
-            --footer-text: #6c425e;
-            --footer-link-color: #4f326a;
-            
-            /* Additional */
-            --success-bg: #d4f4d4;
-            --error-bg: #ffcccc;
-            --shadow: 0 8px 32px rgba(79, 50, 106, 0.2);
-            --shadow-sm: 0 4px 16px rgba(79, 50, 106, 0.15);
-            --shadow-lg: 0 12px 48px rgba(79, 50, 106, 0.25);
-            
-            /* Typography */
-            --font-heading: 'Playfair Display', Georgia, serif;
-            --font-body: 'Poppins', system-ui, -apple-system, sans-serif;
+            --color-1: #24060a;
+            --color-2: #5f1227;
+            --color-3: #753547;
+            --color-4: #a4848f;
+            --color-5: #fdcbe4;
+            --main-bg: #fdcbe4;
+            --header-bg: linear-gradient(135deg, #5f1227 0%, #753547 100%);
+            --header-title-text: #fdcbe4;
+            --hero-title-color: #24060a;
+            --hero-desc-color: #5f1227;
+            --primary-button-bg: #24060a;
+            --primary-button-text: #fdcbe4;
+            --feature-card-border: rgba(117,53,71,0.4);
+            --feature-title-color: #24060a;
+            --feature-desc-color: #5f1227;
+            --shadow: 0 10px 40px rgba(94,18,39,0.3);
+            --shadow-sm: 0 4px 16px rgba(94,18,39,0.2);
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
         }
-        
-        /* ========================================
-           Reset & Base Styles
-           ======================================== */
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html {
-            scroll-behavior: smooth;
-        }
-        
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
         body {
             font-family: var(--font-body);
-            font-size: 1rem;
-            line-height: 1.6;
-            letter-spacing: 0.02em;
+            font-size: 15px;
+            line-height: 1.5;
             color: var(--hero-desc-color);
-            background: linear-gradient(180deg, var(--main-bg) 0%, #996083 50%, var(--color-4) 100%);
+            background: var(--main-bg);
             min-height: 100vh;
             overflow-x: hidden;
-        }
-        
-        /* ========================================
-           App Container
-           ======================================== */
-        .app {
-            max-width: 100%;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* ========================================
-           Header with Logo
-           ======================================== */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            background: var(--header-bg);
-            border-bottom: 1px solid var(--header-border);
-            box-shadow: var(--shadow);
-            transform: translateY(-100%);
-            animation: slideDown 0.6s ease forwards;
-        }
-        
-        @keyframes slideDown {
-            to { transform: translateY(0); }
-        }
-        
-        .header-logo {
-            width: 100%;
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #b68da4 0%, #996083 50%, #6c425e 100%);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Logo Image */
-        .logo-image {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-        }
-        
-        /* CSS Fallback Logo - Metallic Style with Drip Effect */
-        .logo-fallback {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-        }
-        
-        .logo-fallback.visible {
-            display: flex;
-        }
-        
-        .logo-text-metallic {
-            font-family: var(--font-heading);
-            font-size: 3.5rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            background: linear-gradient(
-                135deg,
-                #ffffff 0%,
-                #e8d5e0 20%,
-                #d4b8c8 40%,
-                #c4a0b8 60%,
-                #b890a8 80%,
-                #a880a0 100%
-            );
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(2px 3px 4px rgba(79, 50, 106, 0.5));
-            position: relative;
-            animation: shimmer 3s ease-in-out infinite;
-        }
-        
-        @keyframes shimmer {
-            0%, 100% { filter: drop-shadow(2px 3px 4px rgba(79, 50, 106, 0.5)); }
-            50% { filter: drop-shadow(2px 3px 8px rgba(79, 50, 106, 0.7)); }
-        }
-        
-        /* Drip effects */
-        .logo-drips {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 8px;
-        }
-        
-        .drip {
-            width: 4px;
-            background: linear-gradient(180deg, #e8d5e0 0%, #b890a8 100%);
-            border-radius: 0 0 4px 4px;
-            animation: drip 2s ease-in-out infinite;
-        }
-        
-        .drip:nth-child(1) { height: 20px; animation-delay: 0s; }
-        .drip:nth-child(2) { height: 15px; animation-delay: 0.3s; }
-        .drip:nth-child(3) { height: 25px; animation-delay: 0.6s; }
-        .drip:nth-child(4) { height: 12px; animation-delay: 0.2s; }
-        .drip:nth-child(5) { height: 18px; animation-delay: 0.5s; }
-        
-        @keyframes drip {
-            0%, 100% { transform: scaleY(1); opacity: 0.7; }
-            50% { transform: scaleY(1.3); opacity: 1; }
-        }
-        
-        .logo-emoji-fallback {
-            font-size: 2rem;
-            margin-top: 12px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-        }
-        
-        .header-content {
-            padding: 16px 20px;
-            text-align: center;
-            background: rgba(182, 141, 164, 0.95);
-            backdrop-filter: blur(10px);
-        }
-        
-        .header-title {
-            font-family: var(--font-heading);
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--header-title-text);
-            margin-bottom: 4px;
-        }
-        
-        .header-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            background: var(--header-badge-bg);
-            border-radius: 50px;
-            font-size: 0.85rem;
-            color: var(--header-badge-text);
-            font-weight: 500;
-        }
-        
-        /* ========================================
-           Main Content
-           ======================================== */
-        .main {
-            flex: 1;
-            padding-top: 280px;
-            padding-bottom: 100px;
-        }
-        
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 0 16px;
-        }
-        
-        /* ========================================
-           Hero Section
-           ======================================== */
-        .hero {
-            padding: 24px 0;
-            text-align: center;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.6s ease 0.3s forwards;
-        }
-        
-        @keyframes fadeUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .hero-title {
-            font-family: var(--font-heading);
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--hero-title-color);
-            margin-bottom: 12px;
-        }
-        
-        .hero-desc {
-            font-size: 1rem;
-            color: var(--hero-desc-color);
-            max-width: 320px;
-            margin: 0 auto;
-        }
-        
-        /* ========================================
-           Services Section
-           ======================================== */
-        .services {
-            padding: 24px 0;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.6s ease 0.5s forwards;
-        }
-        
-        .section-title {
-            font-family: var(--font-heading);
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--feature-title-color);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .section-title::before {
-            content: '💅';
-            font-size: 1.3rem;
-        }
-        
-        .services-grid {
-            display: grid;
-            gap: 12px;
-        }
-        
-        .service-card {
-            background: var(--feature-card-bg);
-            border: 1px solid var(--feature-card-border);
-            border-radius: 16px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .service-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .service-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .service-card:hover::before {
-            opacity: 1;
-        }
-        
-        .service-card.selected {
-            border-color: var(--primary-button-bg);
-            box-shadow: 0 0 0 2px var(--primary-button-bg);
-        }
-        
-        .service-card.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 24px;
-            height: 24px;
-            background: var(--primary-button-bg);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        .service-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-        
-        .service-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--feature-icon-bg);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-        
-        .service-info {
-            flex: 1;
-        }
-        
-        .service-name {
-            font-family: var(--font-heading);
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--feature-title-color);
-        }
-        
-        .service-duration {
-            font-size: 0.85rem;
-            color: var(--feature-desc-color);
-        }
-        
-        .service-price {
-            font-family: var(--font-heading);
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--primary-button-bg);
-        }
-        
-        /* ========================================
-           Date & Time Section
-           ======================================== */
-        .datetime {
-            padding: 24px 0;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.6s ease 0.7s forwards;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            color: var(--palette-label-color);
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-        }
-        
-        .form-input,
-        .form-select {
-            width: 100%;
-            padding: 14px 16px;
-            font-family: var(--font-body);
-            font-size: 1rem;
-            color: var(--header-title-text);
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid var(--secondary-button-border);
-            border-radius: 12px;
-            outline: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .form-input:focus,
-        .form-select:focus {
-            border-color: var(--primary-button-bg);
-            box-shadow: 0 0 0 4px rgba(79, 50, 106, 0.15);
-        }
-        
-        .form-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234f326a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 20px;
-            padding-right: 44px;
-        }
-        
-        /* Time slots grid */
-        .time-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-        
-        .time-slot {
-            padding: 10px 8px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid var(--secondary-button-border);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: var(--secondary-button-text);
-        }
-        
-        .time-slot:hover {
-            border-color: var(--primary-button-bg);
-            background: rgba(255, 255, 255, 1);
-        }
-        
-        .time-slot.selected {
-            background: var(--primary-button-bg);
-            border-color: var(--primary-button-bg);
-            color: var(--primary-button-text);
-        }
-        
-        /* ========================================
-           Contact Info Section
-           ======================================== */
-        .contact-info {
-            padding: 24px 0;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.6s ease 0.9s forwards;
-        }
-        
-        .contact-card {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid var(--palette-border);
-            border-radius: 16px;
-            padding: 20px;
-        }
-        
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--palette-border);
-        }
-        
-        .contact-item:last-child {
-            border-bottom: none;
-        }
-        
-        .contact-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--cta-bg);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        
-        .contact-text {
-            flex: 1;
-        }
-        
-        .contact-label {
-            font-size: 0.85rem;
-            color: var(--feature-desc-color);
-        }
-        
-        .contact-value {
-            font-weight: 500;
-            color: var(--header-title-text);
-        }
-        
-        /* ========================================
-           Submit Button
-           ======================================== */
-        .submit-section {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 16px;
-            background: linear-gradient(0deg, rgba(182, 141, 164, 1) 0%, rgba(182, 141, 164, 0.9) 80%, transparent 100%);
-            z-index: 90;
-        }
-        
-        .submit-btn {
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 16px 32px;
-            font-family: var(--font-body);
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--primary-button-text);
-            background: var(--primary-button-bg);
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-        }
-        
-        .submit-btn:hover {
-            filter: brightness(1.1);
-            transform: scale(1.02);
-        }
-        
-        .submit-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .submit-btn .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* ========================================
-           Success Modal
-           ======================================== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(79, 50, 106, 0.8);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal {
-            background: white;
-            border-radius: 24px;
-            padding: 32px;
-            max-width: 340px;
-            width: 90%;
-            text-align: center;
-            transform: scale(0.8);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
-        
-        .modal-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--cta-bg);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            margin: 0 auto 20px;
-            animation: pulse 1s ease infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .modal-title {
-            font-family: var(--font-heading);
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--hero-title-color);
-            margin-bottom: 12px;
-        }
-        
-        .modal-text {
-            color: var(--hero-desc-color);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-        
-        .modal-btn {
-            width: 100%;
-            padding: 14px;
-            font-family: var(--font-body);
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--primary-button-text);
-            background: var(--primary-button-bg);
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .modal-btn:hover {
-            filter: brightness(1.1);
-        }
-        
-        /* ========================================
-           Confetti Canvas
-           ======================================== */
-        #confetti-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 250;
-        }
-        
-        /* ========================================
-           Footer
-           ======================================== */
-        .footer {
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid var(--footer-border);
-            background: rgba(255, 255, 255, 0.5);
-            margin-top: auto;
-        }
-        
-        .footer-text {
-            font-size: 0.85rem;
-            color: var(--footer-text);
-            margin-bottom: 8px;
-        }
-        
-        .footer-link {
-            color: var(--footer-link-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.3s ease;
-        }
-        
-        .footer-link:hover {
-            opacity: 0.8;
-        }
-        
-        /* ========================================
-           Responsive Design
-           ======================================== */
-        @media (min-width: 768px) {
-            .services-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .header-logo {
-                height: 220px;
-            }
-            
-            .main {
-                padding-top: 320px;
-            }
-            
-            .time-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-        }
-        
-        @media (max-width: 360px) {
-            .time-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .service-name {
-                font-size: 1rem;
-            }
-        }
-        
-        /* ========================================
-           Dark Theme Support (Telegram)
-           ======================================== */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --main-bg: #4a3548;
-                --feature-card-bg: rgba(180, 127, 124, 0.3);
-                --palette-card-bg: rgba(182, 141, 164, 0.2);
-            }
-            
-            body {
-                background: linear-gradient(180deg, #4a3548 0%, #3d2840 50%, #2d1f35 100%);
-            }
-            
-            .form-input,
-            .form-select,
-            .time-slot {
-                background: rgba(60, 40, 60, 0.9);
-                color: #f0e0e8;
-            }
-            
-            .contact-card {
-                background: rgba(60, 40, 60, 0.85);
-            }
-        }
-        
-        /* ========================================
-           Loading State
-           ======================================== */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--header-bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 300;
-            transition: opacity 0.5s ease;
-        }
-        
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .loader {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-        
-        .loading-text {
-            color: white;
-            font-weight: 500;
-        }
+            padding-bottom: 80px;
+        }
+
+        .app { max-width: 500px; margin: 0 auto; min-height: 100vh; }
+
+        /* Header */
+        .header { position: relative; background: var(--header-bg); }
+        .header-logo { width: 100%; height: 180px; overflow: hidden; }
+        .header-logo img { width: 100%; height: 180px; object-fit: cover; }
+        .header-content { position: relative; padding: 20px; text-align: center; background: var(--header-bg); }
+        .header-title { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 600; color: var(--header-title-text); margin-bottom: 4px; }
+        .header-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(253,203,228,0.2); border-radius: 50px; font-size: 0.85rem; color: var(--header-title-text); font-weight: 500; }
+
+        /* Tabs */
+        .tabs { display: flex; background: white; border-bottom: 2px solid var(--feature-card-border); position: sticky; top: 0; z-index: 100; }
+        .tab { flex: 1; padding: 14px; text-align: center; font-weight: 500; color: var(--feature-desc-color); background: transparent; border: none; cursor: pointer; transition: all 0.3s ease; font-size: 0.95rem; }
+        .tab.active { color: var(--color-2); border-bottom: 3px solid var(--color-2); background: rgba(95,18,39,0.05); }
+        .tab:hover { background: rgba(95,18,39,0.05); }
+
+        /* Main */
+        .main { padding: 20px 16px; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 600; color: var(--hero-title-color); margin-bottom: 16px; }
+
+        /* Services */
+        .services-grid { display: flex; flex-direction: column; gap: 12px; }
+        .service-card { background: white; border: 2px solid var(--feature-card-border); border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .service-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--color-2); }
+        .service-card.selected { border-color: var(--color-2); background: rgba(95,18,39,0.05); box-shadow: var(--shadow-sm); }
+        .service-card.selected::after { content: '✓'; position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; background: var(--color-2); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
+        .service-header { display: flex; align-items: flex-start; gap: 12px; }
+        .service-info { flex: 1; }
+        .service-name { font-weight: 600; color: var(--feature-title-color); font-size: 1rem; margin-bottom: 4px; }
+        .service-desc { font-size: 0.85rem; color: var(--feature-desc-color); }
+        .service-price { font-weight: 700; color: var(--color-2); font-size: 1.1rem; margin-top: 8px; }
+        .service-duration { font-size: 0.8rem; color: var(--feature-desc-color); margin-top: 4px; }
+
+        /* Sub-services */
+        .sub-services { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--feature-card-border); }
+        .sub-services.visible { display: block; animation: fadeIn 0.3s ease; }
+        .sub-service-option { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin: 6px 0; background: rgba(95,18,39,0.03); border-radius: 10px; cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
+        .sub-service-option:hover { background: rgba(95,18,39,0.08); }
+        .sub-service-option.selected { border-color: var(--color-2); background: rgba(95,18,39,0.1); }
+        .sub-service-name { font-size: 0.9rem; color: var(--feature-title-color); }
+        .sub-service-price { font-weight: 600; color: var(--color-2); }
+
+        /* Photo Notice */
+        .photo-notice { display: none; margin-top: 12px; padding: 12px; background: rgba(253,203,228,0.3); border-radius: 12px; border: 1px dashed var(--color-3); }
+        .photo-notice.visible { display: flex; align-items: center; gap: 10px; animation: fadeIn 0.3s ease; }
+        .photo-notice-icon { font-size: 1.5rem; }
+        .photo-notice-text { font-size: 0.9rem; color: var(--color-2); }
+
+        /* Date & Time */
+        .datetime-section { margin-top: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-weight: 600; color: var(--feature-title-color); margin-bottom: 10px; font-size: 0.95rem; }
+        .date-input { width: 100%; padding: 14px 16px; font-family: var(--font-body); font-size: 1rem; color: var(--feature-title-color); background: white; border: 2px solid var(--feature-card-border); border-radius: 12px; outline: none; transition: all 0.3s ease; cursor: pointer; }
+        .date-input:focus { border-color: var(--color-2); box-shadow: 0 0 0 4px rgba(95,18,39,0.1); }
+        .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .time-slot { padding: 12px 8px; text-align: center; background: white; border: 2px solid var(--feature-card-border); border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-weight: 500; font-size: 0.9rem; color: var(--feature-title-color); }
+        .time-slot:hover { border-color: var(--color-2); background: rgba(95,18,39,0.03); }
+        .time-slot.selected { background: var(--primary-button-bg); border-color: var(--primary-button-bg); color: var(--primary-button-text); }
+
+        /* Appointments */
+        .appointments-list { display: flex; flex-direction: column; gap: 12px; }
+        .appointment-card { background: white; border: 2px solid var(--feature-card-border); border-radius: 16px; padding: 16px; position: relative; }
+        .appointment-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .appointment-service { font-weight: 600; color: var(--feature-title-color); font-size: 1rem; }
+        .appointment-price { font-weight: 700; color: var(--color-2); }
+        .appointment-details { font-size: 0.9rem; color: var(--feature-desc-color); }
+        .appointment-details p { margin: 4px 0; }
+        .cancel-btn { margin-top: 12px; padding: 10px 16px; background: transparent; border: 2px solid #e74c3c; color: #e74c3c; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.3s ease; width: 100%; }
+        .cancel-btn:hover { background: #e74c3c; color: white; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--feature-desc-color); }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+        .empty-state-text { font-size: 1rem; }
+
+        /* Footer */
+        .footer { margin-top: 32px; padding: 20px; background: white; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
+        .footer-title { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 600; color: var(--hero-title-color); margin-bottom: 16px; text-align: center; }
+        .contact-item { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 8px; background: rgba(253,203,228,0.2); border-radius: 12px; text-decoration: none; color: var(--hero-desc-color); transition: all 0.3s ease; }
+        .contact-item:hover { background: rgba(253,203,228,0.4); transform: translateX(4px); }
+        .contact-icon { font-size: 1.3rem; }
+        .contact-text { flex: 1; font-size: 0.95rem; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(36,6,10,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal { background: white; border-radius: 24px; padding: 28px; max-width: 340px; width: 90%; text-align: center; transform: scale(0.9); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-icon { font-size: 3.5rem; margin-bottom: 16px; }
+        .modal-title { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 600; color: var(--hero-title-color); margin-bottom: 12px; }
+        .modal-text { color: var(--hero-desc-color); margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; font-family: var(--font-body); font-size: 1rem; font-weight: 600; color: var(--primary-button-text); background: var(--primary-button-bg); border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 10px; }
+        .modal-btn:hover { opacity: 0.9; }
+        .modal-btn-secondary { background: transparent; color: var(--color-2); border: 2px solid var(--color-2); }
+        .modal-btn-secondary:hover { background: rgba(95,18,39,0.05); }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1001; }
+
+        @media (max-width: 360px) { .time-grid { grid-template-columns: repeat(3, 1fr); } }
     </style>
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loading">
-        <div class="loader"></div>
-        <div class="loading-text">Загрузка...</div>
-    </div>
-    
-    <!-- Confetti Canvas -->
     <canvas id="confetti-canvas"></canvas>
     
-    <!-- App Container -->
     <div class="app">
-        <!-- Header with Logo -->
         <header class="header">
             <div class="header-logo">
-                <!-- Real logo image -->
-                <img src="gonails.jpg" alt="GoNails" class="logo-image" id="logo-image">
-                
-                <!-- CSS Fallback Logo (shown if image fails to load) -->
-                <div class="logo-fallback" id="logo-fallback">
-                    <span class="logo-text-metallic">GoNails</span>
-                    <div class="logo-drips">
-                        <div class="drip"></div>
-                        <div class="drip"></div>
-                        <div class="drip"></div>
-                        <div class="drip"></div>
-                        <div class="drip"></div>
-                    </div>
-                    <span class="logo-emoji-fallback">💅</span>
-                </div>
+                <img src="GoNailsPinky.png" alt="GoNails" onerror="this.style.display='none'">
             </div>
             <div class="header-content">
                 <h1 class="header-title">Запись на маникюр 💅</h1>
-                <div class="header-badge">
-                    ✨ Премиум сервис
-                </div>
+                <div class="header-badge">✨ Премиум сервис</div>
             </div>
         </header>
-        
-        <!-- Main Content -->
+
+        <nav class="tabs">
+            <button class="tab active" data-tab="booking">💅 Записаться</button>
+            <button class="tab" data-tab="appointments">📋 Мои записи</button>
+        </nav>
+
         <main class="main">
-            <div class="container">
-                <!-- Hero Section -->
-                <section class="hero">
-                    <h2 class="hero-title">Создайте свой идеальный образ</h2>
-                    <p class="hero-desc">Выберите услугу, удобную дату и время. Мы сделаем ваши ногти неотразимыми!</p>
+            <div class="tab-content active" id="booking-tab">
+                <section class="services-section">
+                    <h2 class="section-title">Выберите услугу</h2>
+                    <div class="services-grid" id="services-grid"></div>
                 </section>
-                
-                <!-- Services Section -->
-                <section class="services">
-                    <h3 class="section-title">Выберите услугу</h3>
-                    <div class="services-grid" id="services-grid">
-                        <!-- Services will be rendered by JS -->
-                    </div>
-                </section>
-                
-                <!-- Date & Time Section -->
-                <section class="datetime">
-                    <h3 class="section-title">Дата и время</h3>
-                    
+
+                <section class="datetime-section">
+                    <h2 class="section-title">Дата и время</h2>
                     <div class="form-group">
                         <label class="form-label">📅 Выберите дату</label>
-                        <input type="date" class="form-input" id="date-input">
+                        <input type="date" class="date-input" id="date-input">
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label">⏰ Выберите время</label>
-                        <div class="time-grid" id="time-grid">
-                            <!-- Time slots will be rendered by JS -->
-                        </div>
+                        <div class="time-grid" id="time-grid"></div>
                     </div>
                 </section>
-                
-                <!-- Contact Info -->
-                <section class="contact-info">
-                    <h3 class="section-title">Контакты</h3>
-                    <div class="contact-card">
-                        <div class="contact-item">
-                            <div class="contact-icon">📍</div>
-                            <div class="contact-text">
-                                <div class="contact-label">Адрес</div>
-                                <div class="contact-value">ул. Примерная, 123</div>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon">📱</div>
-                            <div class="contact-text">
-                                <div class="contact-label">Телефон</div>
-                                <div class="contact-value">+7 (999) 123-45-67</div>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <div class="contact-icon">⏰</div>
-                            <div class="contact-text">
-                                <div class="contact-label">Время работы</div>
-                                <div class="contact-value">10:00 - 20:00</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+
+                <footer class="footer">
+                    <h3 class="footer-title">📞 Контакты</h3>
+                    <a href="https://maps.google.com/?q=Гаврилова+8А" target="_blank" class="contact-item">
+                        <span class="contact-icon">📍</span>
+                        <span class="contact-text">Гаврилова 8А</span>
+                    </a>
+                    <a href="https://t.me/shchg3" target="_blank" class="contact-item">
+                        <span class="contact-icon">📱</span>
+                        <span class="contact-text">Telegram: @shchg3</span>
+                    </a>
+                    <a href="https://tiktok.com/@gonaiilsskzn" target="_blank" class="contact-item">
+                        <span class="contact-icon">🎵</span>
+                        <span class="contact-text">TikTok: @gonaiilsskzn</span>
+                    </a>
+                    <a href="https://instagram.com/gonaiilsskzn" target="_blank" class="contact-item">
+                        <span class="contact-icon">📷</span>
+                        <span class="contact-text">Instagram: @gonaiilsskzn</span>
+                    </a>
+                </footer>
+            </div>
+
+            <div class="tab-content" id="appointments-tab">
+                <div class="appointments-list" id="appointments-list"></div>
             </div>
         </main>
-        
-        <!-- Submit Button -->
-        <div class="submit-section">
-            <button class="submit-btn" id="submit-btn" disabled>
-                <span class="btn-text">💅 Записаться</span>
-            </button>
-        </div>
-        
-        <!-- Footer -->
-        <footer class="footer">
-            <p class="footer-text">© 2024 GoNails. Все права защищены.</p>
-            <a href="#" class="footer-link" id="share-btn">📤 Поделиться в Telegram</a>
-        </footer>
     </div>
-    
-    <!-- Success Modal -->
+
     <div class="modal-overlay" id="success-modal">
         <div class="modal">
             <div class="modal-icon">💅</div>
             <h3 class="modal-title">Запись создана!</h3>
-            <p class="modal-text" id="modal-text">
-                Мы ждём вас!<br>
-                Подтверждение отправлено в Telegram.
-            </p>
+            <p class="modal-text" id="modal-text"></p>
             <button class="modal-btn" id="modal-close-btn">Отлично!</button>
+            <button class="modal-btn modal-btn-secondary" id="send-photo-btn" style="display:none;">📤 Отправить фото дизайна</button>
         </div>
     </div>
-    
+
     <script>
-        // ========================================
-        // Logo Loading Handler
-        // ========================================
-        const logoImage = document.getElementById('logo-image');
-        const logoFallback = document.getElementById('logo-fallback');
-        
-        // Handle successful image load
-        logoImage.onload = function() {
-            console.log('✅ Логотип gonails.jpg успешно загружен');
-            logoImage.style.display = 'block';
-            logoFallback.classList.remove('visible');
-        };
-        
-        // Handle image load error
-        logoImage.onerror = function() {
-            console.warn('⚠️ Логотип gonails.jpg не найден, показываем CSS-логотип');
-            logoImage.style.display = 'none';
-            logoFallback.classList.add('visible');
-        };
-        
-        // Check if image is already cached (loaded before JS)
-        if (logoImage.complete && logoImage.naturalHeight !== 0) {
-            console.log('✅ Логотип gonails.jpg загружен из кэша');
-            logoImage.style.display = 'block';
-        } else if (logoImage.complete && logoImage.naturalHeight === 0) {
-            console.warn('⚠️ Логотип gonails.jpg не найден (cached error)');
-            logoImage.style.display = 'none';
-            logoFallback.classList.add('visible');
-        }
-        
-        // ========================================
-        // Telegram WebApp Initialization
-        // ========================================
-        const tg = window.Telegram.WebApp;
-        
-        // Initialize WebApp
-        tg.ready();
-        tg.expand();
-        
-        // Set theme colors
-        if (tg.themeParams) {
-            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#b68da4');
-            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#4f326a');
-        }
-        
-        // ========================================
-        // Services Data
-        // ========================================
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.ready(); tg.expand(); }
+
         const services = [
-            {
-                id: 'manicure',
-                name: 'Маникюр классический',
-                duration: '60 мин',
-                price: 1500,
-                icon: '💅'
-            },
-            {
-                id: 'pedicure',
-                name: 'Педикюр',
-                duration: '90 мин',
-                price: 2500,
-                icon: '🦶'
-            },
-            {
-                id: 'gel',
-                name: 'Покрытие гель-лак',
-                duration: '45 мин',
-                price: 800,
-                icon: '✨'
-            },
-            {
-                id: 'design',
-                name: 'Дизайн ногтей',
-                duration: '30 мин',
-                price: 500,
-                icon: '🎨'
-            },
-            {
-                id: 'extensions',
-                name: 'Наращивание',
-                duration: '120 мин',
-                price: 3000,
-                icon: '💎'
-            },
-            {
-                id: 'correction',
-                name: 'Коррекция',
-                duration: '60 мин',
-                price: 1200,
-                icon: '🔧'
-            }
+            { id: 'manicure', name: 'Маникюр (без покрытия)', price: 800, duration: '60 мин', hasSubServices: false },
+            { id: 'coating', name: 'Покрытие', desc: 'Снятие + комби + укрепление + гель-лак', price: 1800, duration: '90 мин', hasSubServices: false },
+            { id: 'extensions', name: 'Наращивание', price: null, duration: '120-150 мин', hasSubServices: true, subServices: [
+                { id: 'extensions_s', name: 'Наращивание S', price: 2500 },
+                { id: 'extensions_m', name: 'Наращивание M', price: 2800 },
+                { id: 'extensions_xl', name: 'Наращивание XL', price: 3300 }
+            ]},
+            { id: 'correction', name: 'Коррекция', price: null, duration: '90-120 мин', hasSubServices: true, subServices: [
+                { id: 'correction_s', name: 'Коррекция S', price: 2000 },
+                { id: 'correction_m', name: 'Коррекция M', price: 2300 },
+                { id: 'correction_xl', name: 'Коррекция XL', price: 2700 }
+            ]},
+            { id: 'design', name: 'Дизайн', price: null, duration: '30-60 мин', hasSubServices: true, needsPhoto: true, subServices: [
+                { id: 'design_light', name: 'Дизайн Light', price: 100 },
+                { id: 'design_medium', name: 'Дизайн Medium', price: 200 },
+                { id: 'design_hard', name: 'Дизайн Hard', price: 300 }
+            ]},
+            { id: 'claws', name: 'Когти', desc: 'Любая длина + дизайн', price: 3000, duration: '150 мин', hasSubServices: false, needsPhoto: true },
+            { id: 'removal_free', name: 'Снятие чужого покрытия', price: 0, duration: '30 мин', hasSubServices: false },
+            { id: 'removal_paid', name: 'Снятие чужого наращивания', price: 200, duration: '45 мин', hasSubServices: false }
         ];
-        
-        const timeSlots = [
-            '10:00', '10:30', '11:00', '11:30',
-            '12:00', '12:30', '13:00', '13:30',
-            '14:00', '14:30', '15:00', '15:30',
-            '16:00', '16:30', '17:00', '17:30',
-            '18:00', '18:30', '19:00', '19:30'
-        ];
-        
-        // ========================================
-        // State Management
-        // ========================================
-        const state = {
-            selectedService: null,
-            selectedDate: null,
-            selectedTime: null
-        };
-        
-        // ========================================
-        // DOM Elements
-        // ========================================
+
+        const timeSlots = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
+
+        const state = { selectedService: null, selectedSubService: null, selectedDate: null, selectedTime: null };
+
         const servicesGrid = document.getElementById('services-grid');
         const timeGrid = document.getElementById('time-grid');
         const dateInput = document.getElementById('date-input');
-        const submitBtn = document.getElementById('submit-btn');
+        const appointmentsList = document.getElementById('appointments-list');
         const successModal = document.getElementById('success-modal');
         const modalText = document.getElementById('modal-text');
         const modalCloseBtn = document.getElementById('modal-close-btn');
-        const loadingOverlay = document.getElementById('loading');
-        const shareBtn = document.getElementById('share-btn');
-        
-        // ========================================
-        // Render Services
-        // ========================================
+        const sendPhotoBtn = document.getElementById('send-photo-btn');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+
         function renderServices() {
             servicesGrid.innerHTML = services.map(service => `
                 <div class="service-card" data-service-id="${service.id}">
                     <div class="service-header">
-                        <div class="service-icon">${service.icon}</div>
                         <div class="service-info">
                             <div class="service-name">${service.name}</div>
-                            <div class="service-duration">⏱ ${service.duration}</div>
+                            ${service.desc ? `<div class="service-desc">${service.desc}</div>` : ''}
+                            ${service.price !== null ? `<div class="service-price">${service.price} ₽</div>` : ''}
+                            ${service.duration ? `<div class="service-duration">⏱ ${service.duration}</div>` : ''}
                         </div>
                     </div>
-                    <div class="service-price">${service.price} ₽</div>
+                    ${service.hasSubServices ? `
+                        <div class="sub-services" id="sub-${service.id}">
+                            ${service.subServices.map(sub => `
+                                <div class="sub-service-option" data-sub-id="${sub.id}" data-sub-price="${sub.price}">
+                                    <span class="sub-service-name">${sub.name}</span>
+                                    <span class="sub-service-price">${sub.price} ₽</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${service.needsPhoto ? `
+                        <div class="photo-notice" id="photo-${service.id}">
+                            <span class="photo-notice-icon">📸</span>
+                            <span class="photo-notice-text">Отправьте фото дизайна в чат с ботом</span>
+                        </div>
+                    ` : ''}
                 </div>
             `).join('');
-            
-            // Add click handlers
+
             document.querySelectorAll('.service-card').forEach(card => {
                 card.addEventListener('click', () => selectService(card.dataset.serviceId));
             });
-        }
-        
-        // ========================================
-        // Render Time Slots
-        // ========================================
-        function renderTimeSlots() {
-            timeGrid.innerHTML = timeSlots.map(time => `
-                <div class="time-slot" data-time="${time}">${time}</div>
-            `).join('');
-            
-            // Add click handlers
-            document.querySelectorAll('.time-slot').forEach(slot => {
-                slot.addEventListener('click', () => selectTime(slot.dataset.time));
+
+            document.querySelectorAll('.sub-service-option').forEach(option => {
+                option.addEventListener('click', (e) => { e.stopPropagation(); selectSubService(option); });
             });
         }
-        
-        // ========================================
-        // Selection Handlers
-        // ========================================
+
         function selectService(serviceId) {
-            state.selectedService = services.find(s => s.id === serviceId);
-            
-            // Update UI
+            const service = services.find(s => s.id === serviceId);
+            state.selectedService = service;
+            state.selectedSubService = null;
+
             document.querySelectorAll('.service-card').forEach(card => {
-                card.classList.toggle('selected', card.dataset.serviceId === serviceId);
+                const isSelected = card.dataset.serviceId === serviceId;
+                card.classList.toggle('selected', isSelected);
+                const subServices = card.querySelector('.sub-services');
+                if (subServices) subServices.classList.toggle('visible', isSelected);
+                const photoNotice = card.querySelector('.photo-notice');
+                if (photoNotice) photoNotice.classList.toggle('visible', isSelected);
             });
-            
-            // Haptic feedback
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.selectionChanged();
-            }
-            
-            updateSubmitButton();
+
+            document.querySelectorAll('.sub-service-option').forEach(opt => opt.classList.remove('selected'));
+            updateMainButton();
+            if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
-        
+
+        function selectSubService(option) {
+            option.parentElement.querySelectorAll('.sub-service-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            state.selectedSubService = { id: option.dataset.subId, price: parseInt(option.dataset.subPrice), name: option.querySelector('.sub-service-name').textContent };
+            updateMainButton();
+            if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        function renderTimeSlots() {
+            timeGrid.innerHTML = timeSlots.map(time => `<div class="time-slot" data-time="${time}">${time}</div>`).join('');
+            document.querySelectorAll('.time-slot').forEach(slot => { slot.addEventListener('click', () => selectTime(slot.dataset.time)); });
+        }
+
         function selectTime(time) {
             state.selectedTime = time;
-            
-            // Update UI
-            document.querySelectorAll('.time-slot').forEach(slot => {
-                slot.classList.toggle('selected', slot.dataset.time === time);
-            });
-            
-            // Haptic feedback
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.selectionChanged();
-            }
-            
-            updateSubmitButton();
+            document.querySelectorAll('.time-slot').forEach(slot => { slot.classList.toggle('selected', slot.dataset.time === time); });
+            updateMainButton();
+            if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
-        
-        function handleDateChange(e) {
-            state.selectedDate = e.target.value;
-            
-            // Haptic feedback
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.selectionChanged();
-            }
-            
-            updateSubmitButton();
-        }
-        
-        // ========================================
-        // Update Submit Button
-        // ========================================
-        function updateSubmitButton() {
-            const isValid = state.selectedService && state.selectedDate && state.selectedTime;
-            submitBtn.disabled = !isValid;
-            
-            if (isValid) {
-                submitBtn.querySelector('.btn-text').textContent = 
-                    `💅 Записаться — ${state.selectedService.price} ₽`;
-            } else {
-                submitBtn.querySelector('.btn-text').textContent = '💅 Записаться';
-            }
-        }
-        
-        // ========================================
-        // Set Min Date
-        // ========================================
+
+        function handleDateChange(e) { state.selectedDate = e.target.value; updateMainButton(); if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
+
         function setMinDate() {
             const today = new Date();
             const year = today.getFullYear();
@@ -1226,208 +353,124 @@
             dateInput.value = `${year}-${month}-${day}`;
             state.selectedDate = dateInput.value;
         }
-        
-        // ========================================
-        // Submit Handler
-        // ========================================
-        async function handleSubmit() {
-            if (!state.selectedService || !state.selectedDate || !state.selectedTime) {
+
+        function updateMainButton() {
+            const price = state.selectedSubService?.price ?? state.selectedService?.price;
+            const isValid = state.selectedService && state.selectedDate && state.selectedTime && (state.selectedService.price !== null || state.selectedSubService);
+            if (tg?.MainButton) {
+                if (isValid && price !== null) { tg.MainButton.setText(`💅 Записаться — ${price} ₽`); tg.MainButton.show(); tg.MainButton.enable(); }
+                else tg.MainButton.hide();
+            }
+        }
+
+        function submitBooking() {
+            if (!state.selectedService || !state.selectedDate || !state.selectedTime) return;
+            const price = state.selectedSubService?.price ?? state.selectedService.price;
+            const serviceName = state.selectedSubService?.name ?? state.selectedService.name;
+            const needsPhoto = state.selectedService.needsPhoto;
+
+            const appointment = { id: Date.now(), service: serviceName, serviceId: state.selectedService.id, subServiceId: state.selectedSubService?.id, price: price, date: state.selectedDate, time: state.selectedTime, needsPhoto: needsPhoto, createdAt: new Date().toISOString() };
+            saveAppointment(appointment);
+
+            if (tg) { tg.sendData(JSON.stringify({ service: serviceName, serviceId: state.selectedService.id, subServiceId: state.selectedSubService?.id, price: price, date: state.selectedDate, time: state.selectedTime })); }
+            showSuccessModal(appointment);
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function showSuccessModal(appointment) {
+            const dateObj = new Date(appointment.date);
+            const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+            modalText.innerHTML = `<strong>${appointment.service}</strong><br>📅 ${dateFormatted}<br>⏰ ${appointment.time}<br>💰 ${appointment.price} ₽`;
+            sendPhotoBtn.style.display = appointment.needsPhoto ? 'block' : 'none';
+            successModal.classList.add('active');
+            launchConfetti();
+        }
+
+        function closeModal() {
+            successModal.classList.remove('active');
+            state.selectedService = null; state.selectedSubService = null; state.selectedTime = null;
+            document.querySelectorAll('.service-card').forEach(card => { card.classList.remove('selected'); const subServices = card.querySelector('.sub-services'); if (subServices) subServices.classList.remove('visible'); const photoNotice = card.querySelector('.photo-notice'); if (photoNotice) photoNotice.classList.remove('visible'); });
+            document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+            updateMainButton();
+            renderAppointments();
+        }
+
+        function saveAppointment(appointment) { const appointments = getAppointments(); appointments.push(appointment); localStorage.setItem('gonails_appointments', JSON.stringify(appointments)); }
+        function getAppointments() { const data = localStorage.getItem('gonails_appointments'); return data ? JSON.parse(data) : []; }
+
+        function cancelAppointment(id) {
+            let appointments = getAppointments();
+            appointments = appointments.filter(a => a.id !== id);
+            localStorage.setItem('gonails_appointments', JSON.stringify(appointments));
+            renderAppointments();
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        }
+
+        function renderAppointments() {
+            const appointments = getAppointments();
+            const now = new Date();
+            const futureAppointments = appointments.filter(a => { const appointmentDate = new Date(a.date + 'T' + a.time); return appointmentDate > now; });
+
+            if (futureAppointments.length === 0) {
+                appointmentsList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">У вас пока нет записей</div></div>';
                 return;
             }
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<div class="spinner"></div><span>Отправка...</span>';
-            
-            // Haptic feedback
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-            
-            // Prepare data
-            const data = {
-                service: state.selectedService.name,
-                serviceId: state.selectedService.id,
-                price: state.selectedService.price,
-                date: state.selectedDate,
-                time: state.selectedTime
-            };
-            
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Send data to Telegram bot
-            try {
-                tg.sendData(JSON.stringify(data));
-                
-                // Show success modal
-                showSuccessModal(data);
-                
-            } catch (error) {
-                console.error('Error sending data:', error);
-                
-                // Show error
-                if (tg.showAlert) {
-                    tg.showAlert('Произошла ошибка. Попробуйте ещё раз.');
-                }
-                
-                // Reset button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span class="btn-text">💅 Записаться</span>';
-            }
+
+            futureAppointments.sort((a, b) => { const dateA = new Date(a.date + 'T' + a.time); const dateB = new Date(b.date + 'T' + b.time); return dateA - dateB; });
+
+            appointmentsList.innerHTML = futureAppointments.map(apt => {
+                const dateObj = new Date(apt.date);
+                const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+                return `<div class="appointment-card"><div class="appointment-header"><div class="appointment-service">${apt.service}</div><div class="appointment-price">${apt.price} ₽</div></div><div class="appointment-details"><p>📅 ${dateFormatted}</p><p>⏰ ${apt.time}</p>${apt.needsPhoto ? '<p>📸 Не забудьте отправить фото дизайна</p>' : ''}</div><button class="cancel-btn" onclick="cancelAppointment(${apt.id})">❌ Отменить запись</button></div>`;
+            }).join('');
         }
-        
-        // ========================================
-        // Success Modal
-        // ========================================
-        function showSuccessModal(data) {
-            // Format date
-            const dateObj = new Date(data.date);
-            const dateFormatted = dateObj.toLocaleDateString('ru-RU', {
-                day: 'numeric',
-                month: 'long',
-                weekday: 'short'
+
+        function initTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    if (tabId === 'appointments') renderAppointments();
+                    if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+                });
             });
-            
-            // Update modal text
-            modalText.innerHTML = `
-                <strong>${data.service}</strong><br>
-                📅 ${dateFormatted}<br>
-                ⏰ ${data.time}<br>
-                💰 ${data.price} ₽
-            `;
-            
-            // Show modal
-            successModal.classList.add('active');
-            
-            // Launch confetti
-            launchConfetti();
-            
-            // Haptic feedback
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
         }
-        
-        function closeSuccessModal() {
-            successModal.classList.remove('active');
-            
-            // Close WebApp
-            tg.close();
-        }
-        
-        // ========================================
-        // Confetti Animation
-        // ========================================
+
         function launchConfetti() {
-            const canvas = document.getElementById('confetti-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
+            const ctx = confettiCanvas.getContext('2d');
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
             const particles = [];
-            const colors = ['#905963', '#b47f7c', '#b68da4', '#6c425e', '#4f326a', '#fff'];
-            
-            // Create particles
-            for (let i = 0; i < 150; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height - canvas.height,
-                    size: Math.random() * 8 + 4,
-                    speedY: Math.random() * 3 + 2,
-                    speedX: Math.random() * 2 - 1,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    rotation: Math.random() * 360,
-                    rotationSpeed: Math.random() * 10 - 5
-                });
-            }
-            
-            let animationFrame;
-            
+            const colors = ['#24060a', '#5f1227', '#753547', '#a4848f', '#fdcbe4'];
+            for (let i = 0; i < 100; i++) { particles.push({ x: Math.random() * confettiCanvas.width, y: Math.random() * confettiCanvas.height - confettiCanvas.height, size: Math.random() * 8 + 4, speedY: Math.random() * 3 + 2, speedX: Math.random() * 2 - 1, color: colors[Math.floor(Math.random() * colors.length)], rotation: Math.random() * 360 }); }
+            let frame = 0;
+            const maxFrames = 150;
             function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                let activeParticles = 0;
-                
-                particles.forEach(p => {
-                    if (p.y < canvas.height + 50) {
-                        activeParticles++;
-                        
-                        ctx.save();
-                        ctx.translate(p.x, p.y);
-                        ctx.rotate(p.rotation * Math.PI / 180);
-                        ctx.fillStyle = p.color;
-                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-                        ctx.restore();
-                        
-                        p.y += p.speedY;
-                        p.x += p.speedX;
-                        p.rotation += p.rotationSpeed;
-                    }
-                });
-                
-                if (activeParticles > 0) {
-                    animationFrame = requestAnimationFrame(animate);
-                } else {
-                    cancelAnimationFrame(animationFrame);
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                }
+                ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                particles.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation * Math.PI / 180); ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); ctx.restore(); p.y += p.speedY; p.x += p.speedX; p.rotation += 2; });
+                frame++;
+                if (frame < maxFrames) requestAnimationFrame(animate);
+                else ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
             }
-            
             animate();
         }
-        
-        // ========================================
-        // Share to Telegram
-        // ========================================
-        function handleShare(e) {
-            e.preventDefault();
-            const text = '💅 Записалась в GoNails! Лучший маникюр в городе!';
-            
-            if (tg.openTelegramLink) {
-                tg.openTelegramLink(`https://t.me/share/url?text=${encodeURIComponent(text)}`);
-            }
-        }
-        
-        // ========================================
-        // Initialize App
-        // ========================================
+
         function init() {
-            // Render components
             renderServices();
             renderTimeSlots();
             setMinDate();
-            
-            // Event listeners
+            initTabs();
+            renderAppointments();
             dateInput.addEventListener('change', handleDateChange);
-            submitBtn.addEventListener('click', handleSubmit);
-            modalCloseBtn.addEventListener('click', closeSuccessModal);
-            shareBtn.addEventListener('click', handleShare);
-            
-            // Setup MainButton (Telegram native button)
-            if (tg.MainButton) {
-                tg.MainButton.setText('💅 Записаться');
-                tg.MainButton.show();
-                tg.MainButton.onClick(handleSubmit);
-            }
-            
-            // Hide loading overlay
-            setTimeout(() => {
-                loadingOverlay.classList.add('hidden');
-            }, 500);
-            
-            // Log user info (for debugging)
-            console.log('WebApp initialized');
-            console.log('Platform:', tg.platform);
-            console.log('Version:', tg.version);
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                console.log('User:', tg.initDataUnsafe.user);
-            }
+            modalCloseBtn.addEventListener('click', closeModal);
+            sendPhotoBtn.addEventListener('click', () => { if (tg) tg.openTelegramLink('https://t.me/shchg3'); else window.open('https://t.me/shchg3', '_blank'); closeModal(); });
+            if (tg?.MainButton) { tg.MainButton.setParams({ color: '#24060a', text_color: '#fdcbe4' }); tg.MainButton.onClick(submitBooking); }
         }
-        
-        // Run initialization
-        document.addEventListener('DOMContentLoaded', init);
+
+        init();
     </script>
 </body>
 </html>
