@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoNails - Панель мастера</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --color-1: #24060a;
+            --color-2: #5f1227;
+            --color-3: #753547;
+            --color-4: #a4848f;
+            --color-5: #fdcbe4;
+            --bg-primary: #fff5f8;
+            --bg-card: #ffffff;
+            --text-primary: #24060a;
+            --text-secondary: #5f1227;
+            --accent: #5f1227;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --shadow: 0 4px 20px rgba(95, 18, 39, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--color-2) 0%, var(--color-3) 100%);
+            padding: 20px;
+            color: var(--color-5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--color-4);
+            overflow-x: auto;
+            position: sticky;
+            top: 75px;
+            z-index: 99;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+            background: rgba(95, 18, 39, 0.05);
+        }
+        
+        /* Content */
+        .content {
+            padding: 20px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .stat-card .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+        
+        /* Appointment Item */
+        .appointment-item {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .appointment-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .appointment-service {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin: 5px 0;
+        }
+        
+        .appointment-client {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .appointment-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: var(--color-5);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+        
+        .btn:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Settings */
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--color-4);
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        
+        .setting-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--color-4);
+            border-radius: 10px;
+            font-size: 14px;
+            margin-top: 8px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+        
+        /* Calendar */
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 10px 0;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-primary);
+        }
+        
+        .calendar-day:hover {
+            background: var(--color-5);
+        }
+        
+        .calendar-day.selected {
+            background: var(--accent);
+            color: var(--color-5);
+        }
+        
+        .calendar-day.blocked {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .calendar-day.has-appointments {
+            background: var(--success);
+            color: white;
+        }
+        
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+        
+        /* Month selector */
+        .month-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .month-nav {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--accent);
+        }
+        
+        /* Export button */
+        .export-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            background: var(--color-5);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--accent);
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .export-btn:hover {
+            background: var(--accent);
+            color: var(--color-5);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--color-4);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>💅 Панель мастера</h1>
+        <p>GoNails Salon</p>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" data-tab="today">Сегодня</button>
+        <button class="tab" data-tab="all">Все записи</button>
+        <button class="tab" data-tab="stats">Статистика</button>
+        <button class="tab" data-tab="settings">Настройки</button>
+    </div>
+    
+    <!-- Content -->
+    <div class="content">
+        
+        <!-- Today Tab -->
+        <div id="today" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="today-count">0</div>
+                    <div class="label">Записей сегодня</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="today-revenue">0₽</div>
+                    <div class="label">Выручка</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📅 Записи на сегодня</div>
+                <div id="today-appointments">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Загрузка...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- All Appointments Tab -->
+        <div id="all" class="tab-content">
+            <div class="card">
+                <div class="card-title">📋 Все будущие записи</div>
+                <div id="all-appointments">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Загрузка...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="export-btn" onclick="exportToCSV()">
+                📥 Экспорт в CSV
+            </button>
+        </div>
+        
+        <!-- Statistics Tab -->
+        <div id="stats" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="stat-total">0</div>
+                    <div class="label">Всего записей</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-month">0</div>
+                    <div class="label">В этом месяце</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-clients">0</div>
+                    <div class="label">Клиентов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-revenue">0₽</div>
+                    <div class="label">Выручка</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📊 Популярность услуг</div>
+                <div id="services-stats"></div>
+            </div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <div class="card-title">💰 Цены услуг</div>
+                <div id="prices-settings">
+                    <!-- Заполняется динамически -->
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="savePrices()">
+                    💾 Сохранить цены
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🚫 Выходные дни</div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--danger);"></div>
+                        <span>Выходной</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--success);"></div>
+                        <span>Есть записи</span>
+                    </div>
+                </div>
+                <div class="month-selector">
+                    <button class="month-nav" onclick="prevMonth()">◀</button>
+                    <span class="month-name" id="month-name">Январь 2026</span>
+                    <button class="month-nav" onclick="nextMonth()">▶</button>
+                </div>
+                <div class="calendar" id="calendar">
+                    <!-- Заполняется динамически -->
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="saveBlockedDates()">
+                    💾 Сохранить выходные
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+        
+        // Демо-данные (в реальном проекте загружаются с сервера)
+        const DEMO_APPOINTMENTS = [
+            { id: 1, time: '10:00', service: 'Маникюр + покрытие', client: 'Анна', phone: '+7 999 123-45-67', price: 2600, date: '2026-03-16' },
+            { id: 2, time: '12:00', service: 'Наращивание M', client: 'Мария', phone: '+7 999 234-56-78', price: 2800, date: '2026-03-16' },
+            { id: 3, time: '14:30', service: 'Коррекция S', client: 'Елена', phone: '+7 999 345-67-89', price: 2000, date: '2026-03-16' },
+            { id: 4, time: '16:00', service: 'Дизайн Hard', client: 'Ольга', phone: '+7 999 456-78-90', price: 300, date: '2026-03-17' },
+            { id: 5, time: '10:00', service: 'Когти', client: 'Катя', phone: '+7 999 567-89-01', price: 3000, date: '2026-03-18' },
+        ];
+        
+        const SERVICES_PRICES = {
+            'Маникюр (без покрытия)': 800,
+            'Покрытие (снятие+комби+укрепление+гель-лак)': 1800,
+            'Наращивание S': 2500,
+            'Наращивание M': 2800,
+            'Наращивание XL': 3300,
+            'Коррекция S': 2000,
+            'Коррекция M': 2300,
+            'Коррекция XL': 2700,
+            'Дизайн Light': 100,
+            'Дизайн Medium': 200,
+            'Дизайн Hard': 300,
+            'Когти (любая длина+дизайн)': 3000,
+            'Снятие чужого покрытия': 0,
+            'Снятие чужого наращивания': 200
+        };
+        
+        let blockedDates = ['2026-03-20', '2026-03-21', '2026-03-27'];
+        let currentMonth = new Date();
+        
+        // ========== Tabs ==========
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // ========== Today Tab ==========
+        function loadTodayAppointments() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayApts = DEMO_APPOINTMENTS.filter(a => a.date === today || a.date === '2026-03-16'); // Демо
+            
+            const container = document.getElementById('today-appointments');
+            
+            if (todayApts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>На сегодня записей нет</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = todayApts.map(apt => `
+                    <div class="appointment-item">
+                        <div class="appointment-time">⏰ ${apt.time}</div>
+                        <div class="appointment-service">${apt.service}</div>
+                        <div class="appointment-client">👤 ${apt.client} • 📞 ${apt.phone}</div>
+                        <div class="appointment-actions">
+                            <button class="btn btn-sm btn-success" onclick="confirmAppointment(${apt.id})">✅ Подтвердить</button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelAppointment(${apt.id})">❌ Отменить</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Update stats
+            document.getElementById('today-count').textContent = todayApts.length;
+            document.getElementById('today-revenue').textContent = todayApts.reduce((sum, a) => sum + a.price, 0) + '₽';
+        }
+        
+        // ========== All Appointments Tab ==========
+        function loadAllAppointments() {
+            const container = document.getElementById('all-appointments');
+            
+            // Group by date
+            const grouped = {};
+            DEMO_APPOINTMENTS.forEach(apt => {
+                if (!grouped[apt.date]) grouped[apt.date] = [];
+                grouped[apt.date].push(apt);
+            });
+            
+            let html = '';
+            Object.keys(grouped).sort().forEach(date => {
+                const dateObj = new Date(date);
+                const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+                
+                html += `<div style="margin: 20px 0 10px; font-weight: 600; color: var(--accent);">📅 ${dateStr}</div>`;
+                
+                grouped[date].forEach(apt => {
+                    html += `
+                        <div class="appointment-item">
+                            <div class="appointment-time">⏰ ${apt.time}</div>
+                            <div class="appointment-service">${apt.service}</div>
+                            <div class="appointment-client">👤 ${apt.client} • ${apt.price}₽</div>
+                        </div>
+                    `;
+                });
+            });
+            
+            container.innerHTML = html || '<div class="empty-state"><p>Нет записей</p></div>';
+        }
+        
+        // ========== Statistics Tab ==========
+        function loadStatistics() {
+            document.getElementById('stat-total').textContent = DEMO_APPOINTMENTS.length;
+            document.getElementById('stat-month').textContent = DEMO_APPOINTMENTS.length;
+            document.getElementById('stat-clients').textContent = new Set(DEMO_APPOINTMENTS.map(a => a.client)).size;
+            document.getElementById('stat-revenue').textContent = DEMO_APPOINTMENTS.reduce((sum, a) => sum + a.price, 0) + '₽';
+            
+            // Services stats
+            const services = {};
+            DEMO_APPOINTMENTS.forEach(apt => {
+                services[apt.service] = (services[apt.service] || 0) + 1;
+            });
+            
+            const statsContainer = document.getElementById('services-stats');
+            statsContainer.innerHTML = Object.entries(services)
+                .sort((a, b) => b[1] - a[1])
+                .map(([service, count]) => `
+                    <div class="setting-item">
+                        <span class="setting-label">${service}</span>
+                        <span class="setting-value">${count} записей</span>
+                    </div>
+                `).join('');
+        }
+        
+        // ========== Settings Tab ==========
+        function loadPricesSettings() {
+            const container = document.getElementById('prices-settings');
+            container.innerHTML = Object.entries(SERVICES_PRICES).map(([service, price]) => `
+                <div class="setting-item">
+                    <div style="flex: 1;">
+                        <div class="setting-label">${service}</div>
+                        <input type="number" value="${price}" data-service="${service}" min="0" step="100">
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function savePrices() {
+            const inputs = document.querySelectorAll('#prices-settings input');
+            inputs.forEach(input => {
+                SERVICES_PRICES[input.dataset.service] = parseInt(input.value) || 0;
+            });
+            
+            // Сохранение в localStorage (в реальном проекте - отправка на сервер)
+            localStorage.setItem('service_prices', JSON.stringify(SERVICES_PRICES));
+            
+            alert('✅ Цены сохранены!');
+        }
+        
+        // ========== Calendar ==========
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            
+            // Update month name
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                              'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            document.getElementById('month-name').textContent = `${monthNames[month]} ${year}`;
+            
+            // Get first day of month
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay() || 7; // Convert Sunday (0) to 7
+            
+            // Get appointments dates
+            const appointmentDates = DEMO_APPOINTMENTS.map(a => a.date);
+            
+            let html = `
+                <div class="calendar-header">Пн</div>
+                <div class="calendar-header">Вт</div>
+                <div class="calendar-header">Ср</div>
+                <div class="calendar-header">Чт</div>
+                <div class="calendar-header">Пт</div>
+                <div class="calendar-header">Сб</div>
+                <div class="calendar-header">Вс</div>
+            `;
+            
+            // Empty cells before first day
+            for (let i = 1; i < startDay; i++) {
+                html += '<div class="calendar-day other-month"></div>';
+            }
+            
+            // Days of month
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isBlocked = blockedDates.includes(dateStr);
+                const hasAppointments = appointmentDates.includes(dateStr);
+                
+                let classes = 'calendar-day';
+                if (isBlocked) classes += ' blocked';
+                if (hasAppointments && !isBlocked) classes += ' has-appointments';
+                
+                html += `<div class="${classes}" data-date="${dateStr}" onclick="toggleDate('${dateStr}')">${day}</div>`;
+            }
+            
+            document.getElementById('calendar').innerHTML = html;
+        }
+        
+        function toggleDate(dateStr) {
+            const index = blockedDates.indexOf(dateStr);
+            if (index > -1) {
+                blockedDates.splice(index, 1);
+            } else {
+                blockedDates.push(dateStr);
+            }
+            renderCalendar();
+        }
+        
+        function prevMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+        }
+        
+        function nextMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+        }
+        
+        function saveBlockedDates() {
+            localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
+            alert('✅ Выходные дни сохранены!');
+        }
+        
+        // ========== Actions ==========
+        function confirmAppointment(id) {
+            alert('✅ Запись #' + id + ' подтверждена');
+        }
+        
+        function cancelAppointment(id) {
+            if (confirm('Отменить запись #' + id + '?')) {
+                alert('❌ Запись отменена');
+            }
+        }
+        
+        function exportToCSV() {
+            let csv = 'Дата,Время,Услуга,Клиент,Телефон,Цена\n';
+            DEMO_APPOINTMENTS.forEach(apt => {
+                csv += `${apt.date},${apt.time},"${apt.service}",${apt.client},${apt.phone},${apt.price}\n`;
+            });
+            
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'appointments.csv';
+            link.click();
+        }
+        
+        // ========== Init ==========
+        loadTodayAppointments();
+        loadAllAppointments();
+        loadStatistics();
+        loadPricesSettings();
+        renderCalendar();
+    </script>
+</body>
+</html>
