@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoNails - Расписание</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --color-1: #24060a;
+            --color-2: #5f1227;
+            --color-3: #753547;
+            --color-4: #a4848f;
+            --color-5: #fdcbe4;
+            --primary-button-bg: #24060a;
+            --primary-button-text: #fdcbe4;
+            --secondary-button-bg: transparent;
+            --secondary-button-text: #24060a;
+            --header-bg: linear-gradient(135deg, #5f1227 0%, #753547 100%);
+            --working-day: #24060a;
+            --dayoff: #a4848f;
+            --today-border: #5f1227;
+            --selected-bg: linear-gradient(135deg, #5f1227 0%, #753547 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-5);
+            color: var(--color-1);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        .header {
+            background: var(--header-bg);
+            padding: 20px;
+            color: var(--color-5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .month-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid var(--color-4);
+        }
+        
+        .month-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-1);
+        }
+        
+        .nav-btn {
+            background: var(--primary-button-bg);
+            color: var(--primary-button-text);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            overflow-x: auto;
+            background: white;
+        }
+        
+        .quick-btn {
+            flex-shrink: 0;
+            padding: 10px 16px;
+            background: var(--color-5);
+            border: 2px solid var(--color-2);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-btn:active {
+            background: var(--color-2);
+            color: var(--color-5);
+        }
+        
+        .calendar-container {
+            padding: 20px;
+        }
+        
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .weekday {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-3);
+            padding: 10px 0;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: white;
+            color: var(--color-1);
+        }
+        
+        .day:active {
+            transform: scale(0.95);
+        }
+        
+        .day.working {
+            background: var(--working-day);
+            color: var(--primary-button-text);
+        }
+        
+        .day.dayoff {
+            background: var(--dayoff);
+            color: var(--color-1);
+        }
+        
+        .day.today {
+            border: 3px solid var(--today-border);
+        }
+        
+        .day.selected {
+            background: var(--selected-bg);
+            color: var(--color-5);
+            box-shadow: 0 4px 15px rgba(95, 18, 39, 0.3);
+        }
+        
+        .day.other-month {
+            opacity: 0.3;
+        }
+        
+        .day .icon {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 10px;
+        }
+        
+        .day .appointments {
+            position: absolute;
+            bottom: 4px;
+            font-size: 10px;
+            background: var(--color-2);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 12px;
+            margin: 0 20px 20px;
+            font-size: 13px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+        }
+        
+        .legend-working {
+            background: var(--working-day);
+        }
+        
+        .legend-dayoff {
+            background: var(--dayoff);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(36, 6, 10, 0.5);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px 20px 0 0;
+            padding: 25px;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-3);
+        }
+        
+        .toggle-container {
+            display: flex;
+            background: var(--color-5);
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--color-3);
+        }
+        
+        .toggle-btn.active {
+            background: white;
+            color: var(--color-1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .time-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .time-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .time-field label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-3);
+        }
+        
+        .time-field input {
+            padding: 12px;
+            border: 2px solid var(--color-4);
+            border-radius: 10px;
+            font-size: 15px;
+            text-align: center;
+        }
+        
+        .time-field input:focus {
+            border-color: var(--color-2);
+            outline: none;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--color-5);
+            border-radius: 12px;
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--color-2);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .modal-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .modal-btn.primary {
+            background: var(--primary-button-bg);
+            color: var(--primary-button-text);
+        }
+        
+        .modal-btn.secondary {
+            background: var(--color-5);
+            color: var(--color-1);
+            border: 2px solid var(--color-4);
+        }
+        
+        .modal-btn.danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-1);
+            color: var(--color-5);
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 2000;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📅 Расписание</h1>
+        <p>Настройте рабочие дни и время</p>
+    </div>
+    
+    <div class="month-nav">
+        <button class="nav-btn" onclick="prevMonth()">◀</button>
+        <span class="month-name" id="monthName">Январь 2026</span>
+        <button class="nav-btn" onclick="nextMonth()">▶</button>
+    </div>
+    
+    <div class="quick-actions">
+        <button class="quick-btn" onclick="setWeekends()">🇷🇺 Выходные (Сб-Вс)</button>
+        <button class="quick-btn" onclick="setAllWorking()">✅ Все рабочие</button>
+        <button class="quick-btn" onclick="copyFromLastMonth()">📋 Скопировать</button>
+        <button class="quick-btn" onclick="resetAll()">🔄 Сбросить</button>
+    </div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color legend-working"></div>
+            <span>Рабочий</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-dayoff"></div>
+            <span>Выходной</span>
+        </div>
+    </div>
+    
+    <div class="calendar-container">
+        <div class="weekdays">
+            <div class="weekday">Пн</div>
+            <div class="weekday">Вт</div>
+            <div class="weekday">Ср</div>
+            <div class="weekday">Чт</div>
+            <div class="weekday">Пт</div>
+            <div class="weekday">Сб</div>
+            <div class="weekday">Вс</div>
+        </div>
+        <div class="calendar" id="calendar"></div>
+    </div>
+    
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Настройка дня</span>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="toggle-container">
+                <button class="toggle-btn active" id="workingBtn" onclick="setDayType('working')">💼 Рабочий</button>
+                <button class="toggle-btn" id="dayoffBtn" onclick="setDayType('dayoff')">🏖️ Выходной</button>
+            </div>
+            
+            <div id="timeFieldsContainer">
+                <div class="time-fields">
+                    <div class="time-field">
+                        <label>Начало работы</label>
+                        <input type="time" id="startTime" value="10:00">
+                    </div>
+                    <div class="time-field">
+                        <label>Конец работы</label>
+                        <input type="time" id="endTime" value="20:00">
+                    </div>
+                </div>
+                
+                <div class="time-fields">
+                    <div class="time-field">
+                        <label>Обед (начало)</label>
+                        <input type="time" id="lunchStart" value="14:00">
+                    </div>
+                    <div class="time-field">
+                        <label>Обед (конец)</label>
+                        <input type="time" id="lunchEnd" value="15:00">
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="useDefault" checked>
+                    <label for="useDefault">Использовать стандартное расписание</label>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeModal()">Отмена</button>
+                <button class="modal-btn primary" onclick="saveDay()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+        
+        // Состояние
+        let currentDate = new Date();
+        let selectedDate = null;
+        let schedule = {};
+        
+        // Загрузка расписания
+        async function loadSchedule() {
+            // Демо-данные (в реальности загружаются с сервера)
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Генерируем расписание по умолчанию
+            schedule = {};
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+                const dateStr = formatDate(d);
+                const dayOfWeek = d.getDay(); // 0=Вс, 6=Сб
+                
+                // По умолчанию Сб и Вс - выходные
+                schedule[dateStr] = {
+                    isWorking: dayOfWeek !== 0 && dayOfWeek !== 6,
+                    startTime: '10:00',
+                    endTime: '20:00',
+                    lunchStart: '14:00',
+                    lunchEnd: '15:00'
+                };
+            }
+            
+            renderCalendar();
+        }
+        
+        // Форматирование даты
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Рендер календаря
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Обновляем название месяца
+            const monthNames = [
+                'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+            ];
+            document.getElementById('monthName').textContent = `${monthNames[month]} ${year}`;
+            
+            // Первый день месяца
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            // День недели первого дня (0=Вс, преобразуем в Пн=0)
+            let startDayOfWeek = firstDay.getDay();
+            startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+            
+            // Сегодня
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            let html = '';
+            
+            // Пустые ячейки до первого дня
+            for (let i = 0; i < startDayOfWeek; i++) {
+                html += '<div class="day other-month"></div>';
+            }
+            
+            // Дни месяца
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const dateStr = formatDate(date);
+                const daySchedule = schedule[dateStr] || { isWorking: true };
+                
+                const isToday = dateStr === todayStr;
+                const isSelected = dateStr === selectedDate;
+                const isWorking = daySchedule.isWorking;
+                
+                let classes = 'day';
+                classes += isWorking ? ' working' : ' dayoff';
+                if (isToday) classes += ' today';
+                if (isSelected) classes += ' selected';
+                
+                html += `
+                    <div class="${classes}" onclick="selectDay('${dateStr}')">
+                        ${day}
+                        ${daySchedule.custom ? '<span class="icon">✏️</span>' : ''}
+                    </div>
+                `;
+            }
+            
+            calendar.innerHTML = html;
+        }
+        
+        // Выбор дня
+        function selectDay(dateStr) {
+            selectedDate = dateStr;
+            const daySchedule = schedule[dateStr] || {
+                isWorking: true,
+                startTime: '10:00',
+                endTime: '20:00',
+                lunchStart: '14:00',
+                lunchEnd: '15:00'
+            };
+            
+            // Обновляем модалку
+            document.getElementById('modalTitle').textContent = formatDateRu(dateStr);
+            
+            if (daySchedule.isWorking) {
+                setDayType('working');
+            } else {
+                setDayType('dayoff');
+            }
+            
+            document.getElementById('startTime').value = daySchedule.startTime || '10:00';
+            document.getElementById('endTime').value = daySchedule.endTime || '20:00';
+            document.getElementById('lunchStart').value = daySchedule.lunchStart || '14:00';
+            document.getElementById('lunchEnd').value = daySchedule.lunchEnd || '15:00';
+            
+            document.getElementById('modalOverlay').classList.add('active');
+            renderCalendar();
+        }
+        
+        // Форматирование даты на русском
+        function formatDateRu(dateStr) {
+            const date = new Date(dateStr);
+            const options = { day: 'numeric', month: 'long', weekday: 'long' };
+            return date.toLocaleDateString('ru-RU', options);
+        }
+        
+        // Установка типа дня
+        function setDayType(type) {
+            const workingBtn = document.getElementById('workingBtn');
+            const dayoffBtn = document.getElementById('dayoffBtn');
+            const timeFields = document.getElementById('timeFieldsContainer');
+            
+            if (type === 'working') {
+                workingBtn.classList.add('active');
+                dayoffBtn.classList.remove('active');
+                timeFields.style.display = 'block';
+            } else {
+                workingBtn.classList.remove('active');
+                dayoffBtn.classList.add('active');
+                timeFields.style.display = 'none';
+            }
+        }
+        
+        // Закрытие модалки
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            selectedDate = null;
+            renderCalendar();
+        }
+        
+        // Сохранение дня
+        function saveDay() {
+            if (!selectedDate) return;
+            
+            const isWorking = document.getElementById('workingBtn').classList.contains('active');
+            
+            schedule[selectedDate] = {
+                isWorking: isWorking,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                lunchStart: document.getElementById('lunchStart').value,
+                lunchEnd: document.getElementById('lunchEnd').value,
+                custom: true
+            };
+            
+            showToast('✅ Сохранено');
+            closeModal();
+        }
+        
+        // Навигация по месяцам
+        function prevMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            loadSchedule();
+        }
+        
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            loadSchedule();
+        }
+        
+        // Быстрые действия
+        function setWeekends() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const lastDay = new Date(year, month + 1, 0);
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const dateStr = formatDate(date);
+                const dayOfWeek = date.getDay();
+                
+                schedule[dateStr] = {
+                    isWorking: dayOfWeek !== 0 && dayOfWeek !== 6,
+                    startTime: '10:00',
+                    endTime: '20:00',
+                    lunchStart: '14:00',
+                    lunchEnd: '15:00'
+                };
+            }
+            
+            showToast('✅ Выходные настроены');
+            renderCalendar();
+        }
+        
+        function setAllWorking() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const lastDay = new Date(year, month + 1, 0);
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dateStr = formatDate(new Date(year, month, day));
+                schedule[dateStr] = {
+                    isWorking: true,
+                    startTime: '10:00',
+                    endTime: '20:00',
+                    lunchStart: '14:00',
+                    lunchEnd: '15:00'
+                };
+            }
+            
+            showToast('✅ Все дни рабочие');
+            renderCalendar();
+        }
+        
+        function copyFromLastMonth() {
+            showToast('📋 Функция в разработке');
+        }
+        
+        function resetAll() {
+            if (confirm('Сбросить все настройки на стандартные?')) {
+                loadSchedule();
+                showToast('🔄 Сброшено');
+            }
+        }
+        
+        // Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Инициализация
+        loadSchedule();
+    </script>
+</body>
+</html>
