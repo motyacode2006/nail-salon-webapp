@@ -509,6 +509,7 @@
     
     <div class="toast" id="toast"></div>
 
+    <script src="lib/api-client.js"></script>
     <script>
         // Инициализация Telegram WebApp
         const tg = window.Telegram?.WebApp;
@@ -525,28 +526,24 @@
         
         // Загрузка расписания
         async function loadSchedule() {
-            // Демо-данные (в реальности загружаются с сервера)
             const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+            const month = currentDate.getMonth() + 1;
             
-            // Генерируем расписание по умолчанию
-            schedule = {};
-            
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            
-            for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-                const dateStr = formatDate(d);
-                const dayOfWeek = d.getDay(); // 0=Вс, 6=Сб
-                
-                // По умолчанию Сб и Вс - выходные
-                schedule[dateStr] = {
-                    isWorking: dayOfWeek !== 0 && dayOfWeek !== 6,
-                    startTime: '10:00',
-                    endTime: '20:00',
-                    lunchStart: '14:00',
-                    lunchEnd: '15:00'
-                };
+            try {
+                const data = await apiGet(`/schedule?year=${year}&month=${month}`);
+                schedule = {};
+                data.forEach(item => {
+                    schedule[item.date] = {
+                        isWorking: item.is_working,
+                        startTime: item.start_time ? item.start_time.substring(0,5) : '10:00',
+                        endTime: item.end_time ? item.end_time.substring(0,5) : '20:00',
+                        lunchStart: item.break_start ? item.break_start.substring(0,5) : '14:00',
+                        lunchEnd: item.break_end ? item.break_end.substring(0,5) : '15:00'
+                    };
+                });
+            } catch (error) {
+                console.error('Error loading schedule:', error);
+                schedule = {};
             }
             
             renderCalendar();
@@ -596,11 +593,11 @@
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const date = new Date(year, month, day);
                 const dateStr = formatDate(date);
-                const daySchedule = schedule[dateStr] || { isWorking: true };
+                const daySchedule = schedule[dateStr];
                 
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedDate;
-                const isWorking = daySchedule.isWorking;
+                const isWorking = daySchedule ? daySchedule.isWorking : true;
                 
                 let classes = 'day';
                 classes += isWorking ? ' working' : ' dayoff';
@@ -610,7 +607,7 @@
                 html += `
                     <div class="${classes}" onclick="selectDay('${dateStr}')">
                         ${day}
-                        ${daySchedule.custom ? '<span class="icon">✏️</span>' : ''}
+                        ${daySchedule && !daySchedule.isWorking ? '<span class="icon">✏️</span>' : ''}
                     </div>
                 `;
             }
@@ -679,22 +676,34 @@
         }
         
         // Сохранение дня
-        function saveDay() {
+        async function saveDay() {
             if (!selectedDate) return;
             
             const isWorking = document.getElementById('workingBtn').classList.contains('active');
             
-            schedule[selectedDate] = {
-                isWorking: isWorking,
-                startTime: document.getElementById('startTime').value,
-                endTime: document.getElementById('endTime').value,
-                lunchStart: document.getElementById('lunchStart').value,
-                lunchEnd: document.getElementById('lunchEnd').value,
-                custom: true
+            const data = {
+                date: selectedDate,
+                is_working: isWorking,
+                start_time: isWorking ? document.getElementById('startTime').value : null,
+                end_time: isWorking ? document.getElementById('endTime').value : null,
+                break_start: isWorking ? document.getElementById('lunchStart').value : null,
+                break_end: isWorking ? document.getElementById('lunchEnd').value : null
             };
             
-            showToast('✅ Сохранено');
-            closeModal();
+            try {
+                await apiPost('/schedule', data);
+                schedule[selectedDate] = {
+                    isWorking: isWorking,
+                    startTime: data.start_time,
+                    endTime: data.end_time,
+                    lunchStart: data.break_start,
+                    lunchEnd: data.break_end
+                };
+                showToast('✅ Сохранено');
+                closeModal();
+            } catch (error) {
+                showToast('❌ Ошибка сохранения');
+            }
         }
         
         // Навигация по месяцам
@@ -709,7 +718,7 @@
         }
         
         // Быстрые действия
-        function setWeekends() {
+        async function setWeekends() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const lastDay = new Date(year, month + 1, 0);
@@ -718,34 +727,60 @@
                 const date = new Date(year, month, day);
                 const dateStr = formatDate(date);
                 const dayOfWeek = date.getDay();
+                const isWorking = dayOfWeek !== 0 && dayOfWeek !== 6;
                 
-                schedule[dateStr] = {
-                    isWorking: dayOfWeek !== 0 && dayOfWeek !== 6,
-                    startTime: '10:00',
-                    endTime: '20:00',
-                    lunchStart: '14:00',
-                    lunchEnd: '15:00'
-                };
+                try {
+                    await apiPost('/schedule', {
+                        date: dateStr,
+                        is_working: isWorking,
+                        start_time: isWorking ? '10:00' : null,
+                        end_time: isWorking ? '20:00' : null,
+                        break_start: isWorking ? '14:00' : null,
+                        break_end: isWorking ? '15:00' : null
+                    });
+                    schedule[dateStr] = {
+                        isWorking: isWorking,
+                        startTime: '10:00',
+                        endTime: '20:00',
+                        lunchStart: '14:00',
+                        lunchEnd: '15:00'
+                    };
+                } catch (error) {
+                    console.error(`Error saving ${dateStr}:`, error);
+                }
             }
             
             showToast('✅ Выходные настроены');
             renderCalendar();
         }
         
-        function setAllWorking() {
+        async function setAllWorking() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const lastDay = new Date(year, month + 1, 0);
             
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const dateStr = formatDate(new Date(year, month, day));
-                schedule[dateStr] = {
-                    isWorking: true,
-                    startTime: '10:00',
-                    endTime: '20:00',
-                    lunchStart: '14:00',
-                    lunchEnd: '15:00'
-                };
+                
+                try {
+                    await apiPost('/schedule', {
+                        date: dateStr,
+                        is_working: true,
+                        start_time: '10:00',
+                        end_time: '20:00',
+                        break_start: '14:00',
+                        break_end: '15:00'
+                    });
+                    schedule[dateStr] = {
+                        isWorking: true,
+                        startTime: '10:00',
+                        endTime: '20:00',
+                        lunchStart: '14:00',
+                        lunchEnd: '15:00'
+                    };
+                } catch (error) {
+                    console.error(`Error saving ${dateStr}:`, error);
+                }
             }
             
             showToast('✅ Все дни рабочие');
@@ -756,11 +791,10 @@
             showToast('📋 Функция в разработке');
         }
         
-        function resetAll() {
-            if (confirm('Сбросить все настройки на стандартные?')) {
-                loadSchedule();
-                showToast('🔄 Сброшено');
-            }
+        async function resetAll() {
+            if (!confirm('Сбросить все настройки на стандартные?')) return;
+            await loadSchedule();
+            showToast('🔄 Сброшено');
         }
         
         // Toast

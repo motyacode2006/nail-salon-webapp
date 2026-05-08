@@ -536,6 +536,7 @@
         
     </div>
 
+    <script src="lib/api-client.js"></script>
     <script>
         // Инициализация Telegram WebApp
         const tg = window.Telegram?.WebApp;
@@ -545,33 +546,13 @@
             tg.expand();
         }
         
-        // Демо-данные (в реальном проекте загружаются с сервера)
-        const DEMO_APPOINTMENTS = [
-            { id: 1, time: '10:00', service: 'Маникюр + покрытие', client: 'Анна', phone: '+7 999 123-45-67', price: 2600, date: '2026-03-16' },
-            { id: 2, time: '12:00', service: 'Наращивание M', client: 'Мария', phone: '+7 999 234-56-78', price: 2800, date: '2026-03-16' },
-            { id: 3, time: '14:30', service: 'Коррекция S', client: 'Елена', phone: '+7 999 345-67-89', price: 2000, date: '2026-03-16' },
-            { id: 4, time: '16:00', service: 'Дизайн Hard', client: 'Ольга', phone: '+7 999 456-78-90', price: 300, date: '2026-03-17' },
-            { id: 5, time: '10:00', service: 'Когти', client: 'Катя', phone: '+7 999 567-89-01', price: 3000, date: '2026-03-18' },
-        ];
+        // Проверка прав администратора
+        if (!IS_ADMIN) {
+            document.body.innerHTML = '<div style="padding:40px;text-align:center;"><h1>⛔ Доступ запрещён</h1><p>Эта панель доступна только мастеру.</p></div>';
+            throw new Error('Access denied');
+        }
         
-        const SERVICES_PRICES = {
-            'Маникюр (без покрытия)': 800,
-            'Покрытие (снятие+комби+укрепление+гель-лак)': 1800,
-            'Наращивание S': 2500,
-            'Наращивание M': 2800,
-            'Наращивание XL': 3300,
-            'Коррекция S': 2000,
-            'Коррекция M': 2300,
-            'Коррекция XL': 2700,
-            'Дизайн Light': 100,
-            'Дизайн Medium': 200,
-            'Дизайн Hard': 300,
-            'Когти (любая длина+дизайн)': 3000,
-            'Снятие чужого покрытия': 0,
-            'Снятие чужого наращивания': 200
-        };
-        
-        let blockedDates = ['2026-03-20', '2026-03-21', '2026-03-27'];
+        let blockedDates = [];
         let currentMonth = new Date();
         
         // ========== Tabs ==========
@@ -590,117 +571,127 @@
         });
         
         // ========== Today Tab ==========
-        function loadTodayAppointments() {
+        async function loadTodayAppointments() {
             const today = new Date().toISOString().split('T')[0];
-            const todayApts = DEMO_APPOINTMENTS.filter(a => a.date === today || a.date === '2026-03-16'); // Демо
-            
             const container = document.getElementById('today-appointments');
             
-            if (todayApts.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <p>На сегодня записей нет</p>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = todayApts.map(apt => `
-                    <div class="appointment-item">
-                        <div class="appointment-time">⏰ ${apt.time}</div>
-                        <div class="appointment-service">${apt.service}</div>
-                        <div class="appointment-client">👤 ${apt.client} • 📞 ${apt.phone}</div>
-                        <div class="appointment-actions">
-                            <button class="btn btn-sm btn-success" onclick="confirmAppointment(${apt.id})">✅ Подтвердить</button>
-                            <button class="btn btn-sm btn-danger" onclick="cancelAppointment(${apt.id})">❌ Отменить</button>
+            try {
+                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                const todayApts = appointments.filter(a => a.appointment_date === today);
+                
+                if (todayApts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>На сегодня записей нет</p>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                } else {
+                    container.innerHTML = todayApts.map(apt => `
+                        <div class="appointment-item">
+                            <div class="appointment-time">⏰ ${apt.appointment_time}</div>
+                            <div class="appointment-service">${apt.service_name || apt.service}</div>
+                            <div class="appointment-client">👤 ${apt.full_name || 'Клиент'} • 📞 ${apt.phone || '-'}</div>
+                            <div class="appointment-actions">
+                                <button class="btn btn-sm btn-success" onclick="confirmAppointment(${apt.id})">✅ Подтвердить</button>
+                                <button class="btn btn-sm btn-danger" onclick="cancelAppointment(${apt.id})">❌ Отменить</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                // Update stats
+                document.getElementById('today-count').textContent = todayApts.length;
+                document.getElementById('today-revenue').textContent = todayApts.reduce((sum, a) => sum + (a.price || 0), 0) + '₽';
+            } catch (e) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка загрузки</p></div>`;
             }
-            
-            // Update stats
-            document.getElementById('today-count').textContent = todayApts.length;
-            document.getElementById('today-revenue').textContent = todayApts.reduce((sum, a) => sum + a.price, 0) + '₽';
         }
         
         // ========== All Appointments Tab ==========
-        function loadAllAppointments() {
+        async function loadAllAppointments() {
             const container = document.getElementById('all-appointments');
             
-            // Group by date
-            const grouped = {};
-            DEMO_APPOINTMENTS.forEach(apt => {
-                if (!grouped[apt.date]) grouped[apt.date] = [];
-                grouped[apt.date].push(apt);
-            });
-            
-            let html = '';
-            Object.keys(grouped).sort().forEach(date => {
-                const dateObj = new Date(date);
-                const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+            try {
+                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                const future = appointments.filter(a => a.appointment_date >= new Date().toISOString().split('T')[0]);
                 
-                html += `<div style="margin: 20px 0 10px; font-weight: 600; color: var(--accent);">📅 ${dateStr}</div>`;
-                
-                grouped[date].forEach(apt => {
-                    html += `
-                        <div class="appointment-item">
-                            <div class="appointment-time">⏰ ${apt.time}</div>
-                            <div class="appointment-service">${apt.service}</div>
-                            <div class="appointment-client">👤 ${apt.client} • ${apt.price}₽</div>
-                        </div>
-                    `;
+                // Group by date
+                const grouped = {};
+                future.forEach(apt => {
+                    if (!grouped[apt.appointment_date]) grouped[apt.appointment_date] = [];
+                    grouped[apt.appointment_date].push(apt);
                 });
-            });
-            
-            container.innerHTML = html || '<div class="empty-state"><p>Нет записей</p></div>';
+                
+                let html = '';
+                Object.keys(grouped).sort().forEach(date => {
+                    const dateObj = new Date(date);
+                    const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+                    
+                    html += `<div style="margin: 20px 0 10px; font-weight: 600; color: var(--accent);">📅 ${dateStr}</div>`;
+                    
+                    grouped[date].forEach(apt => {
+                        html += `
+                            <div class="appointment-item">
+                                <div class="appointment-time">⏰ ${apt.appointment_time}</div>
+                                <div class="appointment-service">${apt.service_name || apt.service}</div>
+                                <div class="appointment-client">👤 ${apt.full_name || 'Клиент'} • ${apt.price}₽</div>
+                            </div>
+                        `;
+                    });
+                });
+                
+                container.innerHTML = html || '<div class="empty-state"><p>Нет записей</p></div>';
+            } catch (e) {
+                container.innerHTML = '<div class="empty-state"><p>Ошибка загрузки</p></div>';
+            }
         }
         
         // ========== Statistics Tab ==========
-        function loadStatistics() {
-            document.getElementById('stat-total').textContent = DEMO_APPOINTMENTS.length;
-            document.getElementById('stat-month').textContent = DEMO_APPOINTMENTS.length;
-            document.getElementById('stat-clients').textContent = new Set(DEMO_APPOINTMENTS.map(a => a.client)).size;
-            document.getElementById('stat-revenue').textContent = DEMO_APPOINTMENTS.reduce((sum, a) => sum + a.price, 0) + '₽';
-            
-            // Services stats
-            const services = {};
-            DEMO_APPOINTMENTS.forEach(apt => {
-                services[apt.service] = (services[apt.service] || 0) + 1;
-            });
-            
-            const statsContainer = document.getElementById('services-stats');
-            statsContainer.innerHTML = Object.entries(services)
-                .sort((a, b) => b[1] - a[1])
-                .map(([service, count]) => `
-                    <div class="setting-item">
-                        <span class="setting-label">${service}</span>
-                        <span class="setting-value">${count} записей</span>
-                    </div>
-                `).join('');
+        async function loadStatistics() {
+            try {
+                const stats = await apiGet('/statistics');
+                document.getElementById('stat-total').textContent = stats.total_appointments;
+                document.getElementById('stat-month').textContent = stats.this_month;
+                document.getElementById('stat-clients').textContent = stats.unique_clients;
+                document.getElementById('stat-revenue').textContent = stats.revenue + '₽';
+                
+                // Services stats
+                const services = stats.services_stats || {};
+                const statsContainer = document.getElementById('services-stats');
+                statsContainer.innerHTML = Object.entries(services)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([service, count]) => `
+                        <div class="setting-item">
+                            <span class="setting-label">${service}</span>
+                            <span class="setting-value">${count} записей</span>
+                        </div>
+                    `).join('');
+            } catch (e) {
+                console.error('Stats error', e);
+            }
         }
         
         // ========== Settings Tab ==========
-        function loadPricesSettings() {
+        async function loadPricesSettings() {
             const container = document.getElementById('prices-settings');
-            container.innerHTML = Object.entries(SERVICES_PRICES).map(([service, price]) => `
-                <div class="setting-item">
-                    <div style="flex: 1;">
-                        <div class="setting-label">${service}</div>
-                        <input type="number" value="${price}" data-service="${service}" min="0" step="100">
+            try {
+                const services = await apiGet('/services');
+                container.innerHTML = services.map(s => `
+                    <div class="setting-item">
+                        <div style="flex: 1;">
+                            <div class="setting-label">${s.name}</div>
+                            <input type="number" value="${s.price}" data-service-id="${s.id}" min="0" step="100">
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            } catch (e) {
+                container.innerHTML = '<p>Ошибка загрузки услуг</p>';
+            }
         }
         
         function savePrices() {
-            const inputs = document.querySelectorAll('#prices-settings input');
-            inputs.forEach(input => {
-                SERVICES_PRICES[input.dataset.service] = parseInt(input.value) || 0;
-            });
-            
-            // Сохранение в localStorage (в реальном проекте - отправка на сервер)
-            localStorage.setItem('service_prices', JSON.stringify(SERVICES_PRICES));
-            
-            alert('✅ Цены сохранены!');
+            alert('💾 Сохранение цен через админ-панель в разработке. Используйте панель v2.');
         }
         
         // ========== Calendar ==========
@@ -717,9 +708,6 @@
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const startDay = firstDay.getDay() || 7; // Convert Sunday (0) to 7
-            
-            // Get appointments dates
-            const appointmentDates = DEMO_APPOINTMENTS.map(a => a.date);
             
             let html = `
                 <div class="calendar-header">Пн</div>
@@ -740,11 +728,9 @@
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const isBlocked = blockedDates.includes(dateStr);
-                const hasAppointments = appointmentDates.includes(dateStr);
                 
                 let classes = 'calendar-day';
                 if (isBlocked) classes += ' blocked';
-                if (hasAppointments && !isBlocked) classes += ' has-appointments';
                 
                 html += `<div class="${classes}" data-date="${dateStr}" onclick="toggleDate('${dateStr}')">${day}</div>`;
             }
@@ -773,32 +759,47 @@
         }
         
         function saveBlockedDates() {
-            localStorage.setItem('blocked_dates', JSON.stringify(blockedDates));
-            alert('✅ Выходные дни сохранены!');
+            alert('💾 Сохранение выходных через API в разработке. Используйте панель v2.');
         }
         
         // ========== Actions ==========
-        function confirmAppointment(id) {
-            alert('✅ Запись #' + id + ' подтверждена');
-        }
-        
-        function cancelAppointment(id) {
-            if (confirm('Отменить запись #' + id + '?')) {
-                alert('❌ Запись отменена');
+        async function confirmAppointment(id) {
+            try {
+                await apiPatch(`/appointments/${id}`, { status: 'confirmed' });
+                alert('✅ Запись подтверждена');
+                loadTodayAppointments();
+            } catch (e) {
+                alert('Ошибка: ' + e.message);
             }
         }
         
-        function exportToCSV() {
-            let csv = 'Дата,Время,Услуга,Клиент,Телефон,Цена\n';
-            DEMO_APPOINTMENTS.forEach(apt => {
-                csv += `${apt.date},${apt.time},"${apt.service}",${apt.client},${apt.phone},${apt.price}\n`;
-            });
-            
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'appointments.csv';
-            link.click();
+        async function cancelAppointment(id) {
+            if (!confirm('Отменить запись?')) return;
+            try {
+                await apiPatch(`/appointments/${id}`, { status: 'cancelled' });
+                alert('❌ Запись отменена');
+                loadTodayAppointments();
+            } catch (e) {
+                alert('Ошибка: ' + e.message);
+            }
+        }
+        
+        async function exportToCSV() {
+            try {
+                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                let csv = 'Дата,Время,Услуга,Клиент,Телефон,Цена\n';
+                appointments.forEach(apt => {
+                    csv += `${apt.appointment_date},${apt.appointment_time},"${apt.service_name || ''}",${apt.full_name || ''},${apt.phone || ''},${apt.price || 0}\n`;
+                });
+                
+                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'appointments.csv';
+                link.click();
+            } catch (e) {
+                alert('Ошибка экспорта: ' + e.message);
+            }
         }
         
         // ========== Init ==========

@@ -223,36 +223,37 @@
         </div>
     </div>
 
+    <script src="lib/api-client.js"></script>
     <script>
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
 
-        const services = [
-            { id: 'manicure', name: 'Маникюр (без покрытия)', price: 800, duration: '60 мин', hasSubServices: false },
-            { id: 'coating', name: 'Покрытие', desc: 'Снятие + комби + укрепление + гель-лак', price: 1800, duration: '90 мин', hasSubServices: false },
-            { id: 'extensions', name: 'Наращивание', price: null, duration: '120-150 мин', hasSubServices: true, subServices: [
-                { id: 'extensions_s', name: 'Наращивание S', price: 2500 },
-                { id: 'extensions_m', name: 'Наращивание M', price: 2800 },
-                { id: 'extensions_xl', name: 'Наращивание XL', price: 3300 }
-            ]},
-            { id: 'correction', name: 'Коррекция', price: null, duration: '90-120 мин', hasSubServices: true, subServices: [
-                { id: 'correction_s', name: 'Коррекция S', price: 2000 },
-                { id: 'correction_m', name: 'Коррекция M', price: 2300 },
-                { id: 'correction_xl', name: 'Коррекция XL', price: 2700 }
-            ]},
-            { id: 'design', name: 'Дизайн', price: null, duration: '30-60 мин', hasSubServices: true, needsPhoto: true, subServices: [
-                { id: 'design_light', name: 'Дизайн Light', price: 100 },
-                { id: 'design_medium', name: 'Дизайн Medium', price: 200 },
-                { id: 'design_hard', name: 'Дизайн Hard', price: 300 }
-            ]},
-            { id: 'claws', name: 'Когти', desc: 'Любая длина + дизайн', price: 3000, duration: '150 мин', hasSubServices: false, needsPhoto: true },
-            { id: 'removal_free', name: 'Снятие чужого покрытия', price: 0, duration: '30 мин', hasSubServices: false },
-            { id: 'removal_paid', name: 'Снятие чужого наращивания', price: 200, duration: '45 мин', hasSubServices: false }
-        ];
+        let services = [];
+        let availableTimeSlots = [];
+        const ALL_TIME_SLOTS = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
 
-        const timeSlots = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
+        async function loadServices() {
+            try {
+                services = await apiGet('/services');
+            } catch (e) {
+                console.error('Failed to load services', e);
+                services = [];
+            }
+            renderServices();
+        }
 
-        const state = { selectedService: null, selectedSubService: null, selectedDate: null, selectedTime: null };
+        async function loadBookedSlots(date) {
+            try {
+                const booked = await apiGet(`/booked-slots?date=${date}`);
+                availableTimeSlots = ALL_TIME_SLOTS.filter(t => !booked.includes(t));
+            } catch (e) {
+                console.error('Failed to load booked slots', e);
+                availableTimeSlots = [...ALL_TIME_SLOTS];
+            }
+            renderTimeSlots();
+        }
+
+        const state = { selectedService: null, selectedDate: null, selectedTime: null };
 
         const servicesGrid = document.getElementById('services-grid');
         const timeGrid = document.getElementById('time-grid');
@@ -270,22 +271,11 @@
                     <div class="service-header">
                         <div class="service-info">
                             <div class="service-name">${service.name}</div>
-                            ${service.desc ? `<div class="service-desc">${service.desc}</div>` : ''}
+                            ${service.duration ? `<div class="service-duration">⏱ ${service.duration} мин</div>` : ''}
                             ${service.price !== null ? `<div class="service-price">${service.price} ₽</div>` : ''}
-                            ${service.duration ? `<div class="service-duration">⏱ ${service.duration}</div>` : ''}
                         </div>
                     </div>
-                    ${service.hasSubServices ? `
-                        <div class="sub-services" id="sub-${service.id}">
-                            ${service.subServices.map(sub => `
-                                <div class="sub-service-option" data-sub-id="${sub.id}" data-sub-price="${sub.price}">
-                                    <span class="sub-service-name">${sub.name}</span>
-                                    <span class="sub-service-price">${sub.price} ₽</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    ${service.needsPhoto ? `
+                    ${service.has_design ? `
                         <div class="photo-notice" id="photo-${service.id}">
                             <span class="photo-notice-icon">📸</span>
                             <span class="photo-notice-text">Отправьте фото дизайна в чат с ботом</span>
@@ -297,41 +287,29 @@
             document.querySelectorAll('.service-card').forEach(card => {
                 card.addEventListener('click', () => selectService(card.dataset.serviceId));
             });
-
-            document.querySelectorAll('.sub-service-option').forEach(option => {
-                option.addEventListener('click', (e) => { e.stopPropagation(); selectSubService(option); });
-            });
         }
 
         function selectService(serviceId) {
-            const service = services.find(s => s.id === serviceId);
+            const service = services.find(s => s.id == serviceId);
             state.selectedService = service;
-            state.selectedSubService = null;
 
             document.querySelectorAll('.service-card').forEach(card => {
-                const isSelected = card.dataset.serviceId === serviceId;
+                const isSelected = card.dataset.serviceId == serviceId;
                 card.classList.toggle('selected', isSelected);
-                const subServices = card.querySelector('.sub-services');
-                if (subServices) subServices.classList.toggle('visible', isSelected);
                 const photoNotice = card.querySelector('.photo-notice');
                 if (photoNotice) photoNotice.classList.toggle('visible', isSelected);
             });
 
-            document.querySelectorAll('.sub-service-option').forEach(opt => opt.classList.remove('selected'));
-            updateMainButton();
-            if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
-        }
-
-        function selectSubService(option) {
-            option.parentElement.querySelectorAll('.sub-service-option').forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
-            state.selectedSubService = { id: option.dataset.subId, price: parseInt(option.dataset.subPrice), name: option.querySelector('.sub-service-name').textContent };
             updateMainButton();
             if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
 
         function renderTimeSlots() {
-            timeGrid.innerHTML = timeSlots.map(time => `<div class="time-slot" data-time="${time}">${time}</div>`).join('');
+            if (availableTimeSlots.length === 0) {
+                timeGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">😔</div><p>Нет доступных слотов на эту дату</p></div>';
+                return;
+            }
+            timeGrid.innerHTML = availableTimeSlots.map(time => `<div class="time-slot" data-time="${time}">${time}</div>`).join('');
             document.querySelectorAll('.time-slot').forEach(slot => { slot.addEventListener('click', () => selectTime(slot.dataset.time)); });
         }
 
@@ -342,7 +320,7 @@
             if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
 
-        function handleDateChange(e) { state.selectedDate = e.target.value; updateMainButton(); if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
+        async function handleDateChange(e) { state.selectedDate = e.target.value; updateMainButton(); if (state.selectedDate) await loadBookedSlots(state.selectedDate); if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
 
         function setMinDate() {
             const today = new Date();
@@ -352,27 +330,40 @@
             dateInput.min = `${year}-${month}-${day}`;
             dateInput.value = `${year}-${month}-${day}`;
             state.selectedDate = dateInput.value;
+            loadBookedSlots(state.selectedDate);
         }
 
         function updateMainButton() {
-            const price = state.selectedSubService?.price ?? state.selectedService?.price;
-            const isValid = state.selectedService && state.selectedDate && state.selectedTime && (state.selectedService.price !== null || state.selectedSubService);
+            const price = state.selectedService?.price;
+            const isValid = state.selectedService && state.selectedDate && state.selectedTime && price !== null;
             if (tg?.MainButton) {
                 if (isValid && price !== null) { tg.MainButton.setText(`💅 Записаться — ${price} ₽`); tg.MainButton.show(); tg.MainButton.enable(); }
                 else tg.MainButton.hide();
             }
         }
 
-        function submitBooking() {
+        async function submitBooking() {
             if (!state.selectedService || !state.selectedDate || !state.selectedTime) return;
-            const price = state.selectedSubService?.price ?? state.selectedService.price;
-            const serviceName = state.selectedSubService?.name ?? state.selectedService.name;
-            const needsPhoto = state.selectedService.needsPhoto;
+            const price = state.selectedService.price;
+            const serviceName = state.selectedService.name;
 
-            const appointment = { id: Date.now(), service: serviceName, serviceId: state.selectedService.id, subServiceId: state.selectedSubService?.id, price: price, date: state.selectedDate, time: state.selectedTime, needsPhoto: needsPhoto, createdAt: new Date().toISOString() };
-            saveAppointment(appointment);
+            try {
+                await apiPost('/appointments', {
+                    telegram_id: TELEGRAM_USER_ID,
+                    service_id: state.selectedService.id,
+                    appointment_date: state.selectedDate,
+                    appointment_time: state.selectedTime,
+                    price: price,
+                    phone: TELEGRAM_USER?.phone_number || ''
+                });
+            } catch (e) {
+                alert('Ошибка при создании записи: ' + e.message);
+                return;
+            }
 
-            if (tg) { tg.sendData(JSON.stringify({ service: serviceName, serviceId: state.selectedService.id, subServiceId: state.selectedSubService?.id, price: price, date: state.selectedDate, time: state.selectedTime })); }
+            if (tg) { tg.sendData(JSON.stringify({ service: serviceName, serviceId: state.selectedService.id, price: price, date: state.selectedDate, time: state.selectedTime })); }
+
+            const appointment = { id: Date.now(), service: serviceName, serviceId: state.selectedService.id, price: price, date: state.selectedDate, time: state.selectedTime, has_design: state.selectedService.has_design };
             showSuccessModal(appointment);
             if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
@@ -381,47 +372,66 @@
             const dateObj = new Date(appointment.date);
             const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
             modalText.innerHTML = `<strong>${appointment.service}</strong><br>📅 ${dateFormatted}<br>⏰ ${appointment.time}<br>💰 ${appointment.price} ₽`;
-            sendPhotoBtn.style.display = appointment.needsPhoto ? 'block' : 'none';
+            sendPhotoBtn.style.display = appointment.has_design ? 'block' : 'none';
             successModal.classList.add('active');
             launchConfetti();
         }
 
         function closeModal() {
             successModal.classList.remove('active');
-            state.selectedService = null; state.selectedSubService = null; state.selectedTime = null;
-            document.querySelectorAll('.service-card').forEach(card => { card.classList.remove('selected'); const subServices = card.querySelector('.sub-services'); if (subServices) subServices.classList.remove('visible'); const photoNotice = card.querySelector('.photo-notice'); if (photoNotice) photoNotice.classList.remove('visible'); });
+            state.selectedService = null; state.selectedTime = null;
+            document.querySelectorAll('.service-card').forEach(card => { card.classList.remove('selected'); const photoNotice = card.querySelector('.photo-notice'); if (photoNotice) photoNotice.classList.remove('visible'); });
             document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
             updateMainButton();
             renderAppointments();
         }
 
-        function saveAppointment(appointment) { const appointments = getAppointments(); appointments.push(appointment); localStorage.setItem('gonails_appointments', JSON.stringify(appointments)); }
-        function getAppointments() { const data = localStorage.getItem('gonails_appointments'); return data ? JSON.parse(data) : []; }
-
-        function cancelAppointment(id) {
-            let appointments = getAppointments();
-            appointments = appointments.filter(a => a.id !== id);
-            localStorage.setItem('gonails_appointments', JSON.stringify(appointments));
-            renderAppointments();
-            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        async function getAppointments() {
+            if (!TELEGRAM_USER_ID) return [];
+            try {
+                return await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+            } catch (e) {
+                console.error('Failed to load appointments', e);
+                return [];
+            }
         }
 
-        function renderAppointments() {
-            const appointments = getAppointments();
+        async function cancelAppointment(id) {
+            if (!confirm('Отменить запись?')) return;
+            try {
+                await apiDelete(`/appointments/${id}`);
+                renderAppointments();
+                if (state.selectedDate) await loadBookedSlots(state.selectedDate);
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+            } catch (e) {
+                alert('Ошибка при отмене: ' + e.message);
+            }
+        }
+
+        async function renderAppointments() {
+            const appointments = await getAppointments();
             const now = new Date();
-            const futureAppointments = appointments.filter(a => { const appointmentDate = new Date(a.date + 'T' + a.time); return appointmentDate > now; });
+            const futureAppointments = appointments.filter(a => {
+                const date = a.appointment_date;
+                const time = a.appointment_time;
+                return new Date(date + 'T' + time) > now && a.status !== 'cancelled';
+            });
 
             if (futureAppointments.length === 0) {
                 appointmentsList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">У вас пока нет записей</div></div>';
                 return;
             }
 
-            futureAppointments.sort((a, b) => { const dateA = new Date(a.date + 'T' + a.time); const dateB = new Date(b.date + 'T' + b.time); return dateA - dateB; });
+            futureAppointments.sort((a, b) => {
+                const dateA = new Date(a.appointment_date + 'T' + a.appointment_time);
+                const dateB = new Date(b.appointment_date + 'T' + b.appointment_time);
+                return dateA - dateB;
+            });
 
             appointmentsList.innerHTML = futureAppointments.map(apt => {
-                const dateObj = new Date(apt.date);
+                const dateObj = new Date(apt.appointment_date);
                 const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
-                return `<div class="appointment-card"><div class="appointment-header"><div class="appointment-service">${apt.service}</div><div class="appointment-price">${apt.price} ₽</div></div><div class="appointment-details"><p>📅 ${dateFormatted}</p><p>⏰ ${apt.time}</p>${apt.needsPhoto ? '<p>📸 Не забудьте отправить фото дизайна</p>' : ''}</div><button class="cancel-btn" onclick="cancelAppointment(${apt.id})">❌ Отменить запись</button></div>`;
+                return `<div class="appointment-card"><div class="appointment-header"><div class="appointment-service">${apt.service_name || apt.service}</div><div class="appointment-price">${apt.price} ₽</div></div><div class="appointment-details"><p>📅 ${dateFormatted}</p><p>⏰ ${apt.appointment_time}</p>${apt.has_design ? '<p>📸 Не забудьте отправить фото дизайна</p>' : ''}</div><button class="cancel-btn" onclick="cancelAppointment(${apt.id})">❌ Отменить запись</button></div>`;
             }).join('');
         }
 
@@ -458,9 +468,8 @@
             animate();
         }
 
-        function init() {
-            renderServices();
-            renderTimeSlots();
+        async function init() {
+            await loadServices();
             setMinDate();
             initTabs();
             renderAppointments();

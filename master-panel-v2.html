@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoNails - Панель мастера</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --color-1: #24060a;
+            --color-2: #5f1227;
+            --color-3: #753547;
+            --color-4: #a4848f;
+            --color-5: #fdcbe4;
+            --bg-primary: #fff5f8;
+            --bg-card: #ffffff;
+            --text-primary: #24060a;
+            --text-secondary: #5f1227;
+            --accent: #5f1227;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #f43f5e;
+            --shadow: 0 4px 20px rgba(95, 18, 39, 0.15);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--color-2) 0%, var(--color-3) 100%);
+            padding: 20px;
+            color: var(--color-5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        
+        .tabs {
+            display: flex;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--color-4);
+            overflow-x: auto;
+            position: sticky;
+            top: 75px;
+            z-index: 99;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+            background: rgba(95, 18, 39, 0.05);
+        }
+        
+        .content { padding: 20px; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .stat-card .value { font-size: 28px; font-weight: 700; color: var(--accent); }
+        .stat-card .label { font-size: 13px; color: var(--text-secondary); margin-top: 5px; }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; }
+        
+        .appointment-item {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .appointment-item.confirmed { border-left-color: var(--success); }
+        .appointment-item.completed { border-left-color: var(--color-4); opacity: 0.7; }
+        .appointment-item.cancelled { border-left-color: var(--danger); opacity: 0.5; }
+        
+        .appointment-time { font-size: 18px; font-weight: 700; color: var(--accent); }
+        .appointment-service { font-size: 14px; margin: 5px 0; }
+        .appointment-client { font-size: 13px; color: var(--text-secondary); }
+        
+        .appointment-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+        
+        .status-pending { background: var(--warning); color: white; }
+        .status-confirmed { background: var(--success); color: white; }
+        .status-completed { background: var(--color-4); color: white; }
+        .status-cancelled { background: var(--danger); color: white; }
+        
+        .appointment-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+        .btn-primary { background: var(--accent); color: var(--color-5); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 10px 0;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f1f5f9;
+        }
+        
+        .calendar-day:hover { background: var(--color-5); }
+        .calendar-day.selected { background: var(--accent); color: var(--color-5); }
+        .calendar-day.working { background: var(--success); color: white; }
+        .calendar-day.weekend { background: var(--danger); color: white; }
+        .calendar-day.blocked { background: #e2e8f0; color: #94a3b8; }
+        .calendar-day.other-month { opacity: 0.3; }
+        .calendar-day.today { border: 2px solid var(--accent); }
+        
+        .month-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-name { font-size: 18px; font-weight: 600; }
+        .month-nav { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--accent); padding: 5px 15px; }
+        
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-color { width: 16px; height: 16px; border-radius: 4px; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+        .empty-state-icon { font-size: 48px; margin-bottom: 15px; }
+        
+        .loading { text-align: center; padding: 40px; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--color-4);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(36, 6, 10, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .modal {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 8px; }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--color-4);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+        
+        .radio-group { display: flex; gap: 10px; margin-bottom: 16px; }
+        
+        .radio-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--color-4);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .radio-option.selected { border-color: var(--accent); background: rgba(95, 18, 39, 0.05); }
+        .radio-option input { display: none; }
+        
+        .time-slot-list { margin-top: 10px; }
+        
+        .time-slot-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .time-slot-item input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid var(--color-4);
+            border-radius: 6px;
+        }
+        
+        .time-slot-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+        
+        .add-slot-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-primary);
+            border: 2px dashed var(--color-4);
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+        
+        .add-slot-btn:hover { border-color: var(--accent); color: var(--accent); }
+        
+        .export-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            background: var(--color-5);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--accent);
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .export-btn:hover { background: var(--accent); color: var(--color-5); }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .notification.success { background: var(--success); }
+        .notification.error { background: var(--danger); }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        @media (max-width: 400px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .radio-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💅 Панель мастера</h1>
+        <p>GoNails Salon</p>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="today">Сегодня</button>
+        <button class="tab" data-tab="all">Все записи</button>
+        <button class="tab" data-tab="stats">Статистика</button>
+        <button class="tab" data-tab="schedule">Расписание</button>
+    </div>
+    
+    <div class="content">
+        <div id="today" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="today-count">0</div>
+                    <div class="label">Записей сегодня</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="today-revenue">0₽</div>
+                    <div class="label">Выручка</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📅 Записи на сегодня</div>
+                <div id="today-appointments">
+                    <div class="loading"><div class="spinner"></div><p>Загрузка...</p></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="all" class="tab-content">
+            <div class="card">
+                <div class="card-title">📋 Все будущие записи</div>
+                <div id="all-appointments">
+                    <div class="loading"><div class="spinner"></div><p>Загрузка...</p></div>
+                </div>
+            </div>
+            <button class="export-btn" onclick="exportToCSV()">📥 Экспорт в CSV</button>
+        </div>
+        
+        <div id="stats" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="stat-total">0</div>
+                    <div class="label">Всего записей</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-month">0</div>
+                    <div class="label">В этом месяце</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-clients">0</div>
+                    <div class="label">Клиентов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-revenue">0₽</div>
+                    <div class="label">Выручка</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Популярность услуг</div>
+                <div id="services-stats"></div>
+            </div>
+        </div>
+        
+        <div id="schedule" class="tab-content">
+            <div class="card">
+                <div class="card-title">📅 Управление расписанием</div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--success);"></div>
+                        <span>Рабочий день</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--danger);"></div>
+                        <span>Выходной</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e2e8f0;"></div>
+                        <span>Не настроено</span>
+                    </div>
+                </div>
+                <div class="month-selector">
+                    <button class="month-nav" onclick="prevMonth()">◀</button>
+                    <span class="month-name" id="month-name">Январь 2026</span>
+                    <button class="month-nav" onclick="nextMonth()">▶</button>
+                </div>
+                <div class="calendar" id="calendar"></div>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="generateNextMonth()">
+                📅 Сгенерировать расписание на следующий месяц
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="day-modal">
+        <div class="modal">
+            <div class="modal-title" id="modal-date-title">Редактирование даты</div>
+            
+            <div class="form-group">
+                <label class="form-label">Тип дня</label>
+                <div class="radio-group">
+                    <label class="radio-option" id="working-option">
+                        <input type="radio" name="day-type" value="working" checked>
+                        🔵 Рабочий день
+                    </label>
+                    <label class="radio-option" id="weekend-option">
+                        <input type="radio" name="day-type" value="weekend">
+                        ⚪ Выходной
+                    </label>
+                </div>
+            </div>
+            
+            <div id="time-slots-section">
+                <div class="form-group">
+                    <label class="form-label">Временные слоты</label>
+                    <div class="time-slot-list" id="time-slot-list"></div>
+                    <button class="add-slot-btn" onclick="addTimeSlot()">+ Добавить интервал</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Обед с</label>
+                        <input type="time" class="form-input" id="lunch-start" value="14:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Обед до</label>
+                        <input type="time" class="form-input" id="lunch-end" value="15:00">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row" style="margin-top: 20px;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="saveDaySettings()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="lib/api-client.js"></script>
+    <script>
+        // Проверка доступа (только для админа)
+        if (!IS_ADMIN) {
+            document.body.innerHTML = `<div style="padding: 40px; text-align: center;"><h1>⛔ Доступ запрещён</h1><p>Эта панель доступна только мастеру.</p></div>`;
+            throw new Error('Access denied');
+        }
+
+        let currentMonth = new Date();
+        let scheduleData = {};
+        let appointmentsData = [];
+        let selectedDate = null;
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function getToday() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function getMonthName(month) {
+            const months = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+            return months[month];
+        }
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.dataset.tab;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                if (tabId === 'today') loadTodayAppointments();
+                else if (tabId === 'all') loadAllAppointments();
+                else if (tabId === 'stats') loadStatistics();
+                else if (tabId === 'schedule') loadSchedule();
+            });
+        });
+
+        async function loadTodayAppointments() {
+            const container = document.getElementById('today-appointments');
+            const today = getToday();
+            
+            try {
+                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                const todayApts = appointments.filter(a => a.appointment_date === today);
+                appointmentsData = appointments;
+                
+                if (!todayApts?.length) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>На сегодня записей нет</p></div>';
+                } else {
+                    container.innerHTML = todayApts.map(apt => renderAppointmentCard(apt, true)).join('');
+                }
+                
+                document.getElementById('today-count').textContent = todayApts?.length || 0;
+                document.getElementById('today-revenue').textContent = (todayApts?.reduce((sum, a) => sum + (a.price || 0), 0) || 0) + '₽';
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка: ${error.message}</p></div>`;
+            }
+        }
+
+        function renderAppointmentCard(apt, showActions = false) {
+            const statusClass = apt.status === 'confirmed' ? 'confirmed' : apt.status === 'completed' ? 'completed' : apt.status === 'cancelled' ? 'cancelled' : '';
+            const statusText = { 'pending': 'Ожидает', 'confirmed': 'Подтверждено', 'completed': 'Выполнено', 'cancelled': 'Отменено' };
+            
+            let actions = '';
+            if (showActions && apt.status !== 'cancelled' && apt.status !== 'completed') {
+                actions = `<div class="appointment-actions">
+                    ${apt.status !== 'confirmed' ? `<button class="btn btn-sm btn-success" onclick="updateStatus(${apt.id}, 'confirmed')">✅ Подтвердить</button>` : ''}
+                    <button class="btn btn-sm btn-primary" onclick="updateStatus(${apt.id}, 'completed')">✓ Выполнено</button>
+                    <button class="btn btn-sm btn-danger" onclick="updateStatus(${apt.id}, 'cancelled')">❌ Отменить</button>
+                </div>`;
+            }
+            
+            return `<div class="appointment-item ${statusClass}">
+                <div class="appointment-time">⏰ ${apt.appointment_time}</div>
+                <div class="appointment-service">${apt.service_name || apt.service}</div>
+                <div class="appointment-client">👤 ${apt.full_name || 'Клиент'} ${apt.phone ? '• 📞 ' + apt.phone : ''}</div>
+                <span class="appointment-status status-${apt.status}">${statusText[apt.status] || 'Ожидает'}</span>
+                ${actions}
+            </div>`;
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                await apiPatch(`/appointments/${id}`, { status });
+                showNotification(status === 'confirmed' ? 'Запись подтверждена!' : status === 'completed' ? 'Запись выполнена!' : 'Запись отменена');
+                loadTodayAppointments();
+            } catch (error) {
+                showNotification('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function loadAllAppointments() {
+            const container = document.getElementById('all-appointments');
+            
+            try {
+                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                const future = appointments.filter(a => a.appointment_date >= getToday());
+                
+                if (!future?.length) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Нет будущих записей</p></div>';
+                    return;
+                }
+                
+                const grouped = {};
+                future.forEach(apt => {
+                    if (!grouped[apt.appointment_date]) grouped[apt.appointment_date] = [];
+                    grouped[apt.appointment_date].push(apt);
+                });
+                
+                let html = '';
+                Object.keys(grouped).sort().forEach(date => {
+                    const dateObj = new Date(date);
+                    const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+                    html += `<div style="margin: 20px 0 10px; font-weight: 600; color: var(--accent);">📅 ${dateStr}</div>`;
+                    grouped[date].forEach(apt => { html += renderAppointmentCard(apt, true); });
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка: ${error.message}</p></div>`;
+            }
+        }
+
+        async function loadStatistics() {
+            try {
+                const stats = await apiGet('/statistics');
+                
+                if (!stats) return;
+                
+                document.getElementById('stat-total').textContent = stats.total_appointments;
+                document.getElementById('stat-month').textContent = stats.this_month;
+                document.getElementById('stat-clients').textContent = stats.unique_clients;
+                document.getElementById('stat-revenue').textContent = stats.revenue + '₽';
+                
+                const servicesContainer = document.getElementById('services-stats');
+                const sortedServices = Object.entries(stats.services_stats).sort((a, b) => b[1] - a[1]);
+                
+                servicesContainer.innerHTML = sortedServices.length ? sortedServices.map(([service, count]) => 
+                    `<div style="display:flex;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--color-4);">
+                        <span>${service}</span>
+                        <span style="font-weight:600;color:var(--accent);">${count} записей</span>
+                    </div>`
+                ).join('') : '<p>Нет данных</p>';
+            } catch (error) {
+                console.error('Statistics error:', error);
+            }
+        }
+
+        async function loadSchedule() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth() + 1;
+            
+            try {
+                const schedule = await apiGet(`/schedule?year=${year}&month=${month}`);
+                scheduleData = {};
+                schedule.forEach(item => { scheduleData[item.date] = item; });
+                renderCalendar();
+            } catch (error) {
+                console.error('Schedule error:', error);
+                renderCalendar();
+            }
+        }
+
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            
+            document.getElementById('month-name').textContent = `${getMonthName(month)} ${year}`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay() || 7;
+            const today = getToday();
+            
+            let html = '<div class="calendar-header">Пн</div><div class="calendar-header">Вт</div><div class="calendar-header">Ср</div><div class="calendar-header">Чт</div><div class="calendar-header">Пт</div><div class="calendar-header">Сб</div><div class="calendar-header">Вс</div>';
+            
+            for (let i = 1; i < startDay; i++) { html += '<div class="calendar-day other-month"></div>'; }
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const scheduleItem = scheduleData[dateStr];
+                const dayOfWeek = new Date(dateStr).getDay();
+                
+                let classes = 'calendar-day';
+                
+                if (scheduleItem) {
+                    classes += scheduleItem.is_working ? ' working' : ' weekend';
+                } else {
+                    classes += (dayOfWeek === 0 || dayOfWeek === 6) ? ' weekend' : ' blocked';
+                }
+                
+                if (dateStr === today) classes += ' today';
+                
+                html += `<div class="${classes}" data-date="${dateStr}" onclick="openDayModal('${dateStr}')">${day}</div>`;
+            }
+            
+            document.getElementById('calendar').innerHTML = html;
+        }
+
+        function prevMonth() { currentMonth.setMonth(currentMonth.getMonth() - 1); loadSchedule(); }
+        function nextMonth() { currentMonth.setMonth(currentMonth.getMonth() + 1); loadSchedule(); }
+
+        function openDayModal(dateStr) {
+            selectedDate = dateStr;
+            const date = new Date(dateStr);
+            document.getElementById('modal-date-title').textContent = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
+            
+            const scheduleItem = scheduleData[dateStr];
+            const isWorking = scheduleItem ? scheduleItem.is_working !== false : true;
+            
+            document.querySelector('#working-option').classList.toggle('selected', isWorking);
+            document.querySelector('#weekend-option').classList.toggle('selected', !isWorking);
+            document.querySelector(`input[name="day-type"][value="${isWorking ? 'working' : 'weekend'}"]`).checked = true;
+            
+            const timeSlots = scheduleItem ? [{ start: scheduleItem.start_time || '10:00', end: scheduleItem.end_time || '20:00' }] : [{ start: '10:00', end: '20:00' }];
+            renderTimeSlots(timeSlots);
+            
+            document.getElementById('lunch-start').value = scheduleItem?.break_start || '14:00';
+            document.getElementById('lunch-end').value = scheduleItem?.break_end || '15:00';
+            document.getElementById('time-slots-section').style.display = isWorking ? 'block' : 'none';
+            
+            document.getElementById('day-modal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('day-modal').classList.remove('active'); selectedDate = null; }
+
+        document.querySelectorAll('input[name="day-type"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const isWorking = e.target.value === 'working';
+                document.querySelector('#working-option').classList.toggle('selected', isWorking);
+                document.querySelector('#weekend-option').classList.toggle('selected', !isWorking);
+                document.getElementById('time-slots-section').style.display = isWorking ? 'block' : 'none';
+            });
+        });
+
+        function renderTimeSlots(slots) {
+            const container = document.getElementById('time-slot-list');
+            container.innerHTML = slots.map((slot, index) => `
+                <div class="time-slot-item">
+                    <input type="time" value="${slot.start}" data-index="${index}" data-field="start">
+                    <span>до</span>
+                    <input type="time" value="${slot.end}" data-index="${index}" data-field="end">
+                    <button class="time-slot-remove" onclick="removeTimeSlot(${index})">×</button>
+                </div>
+            `).join('');
+            window.currentTimeSlots = slots;
+        }
+
+        function addTimeSlot() {
+            const slots = window.currentTimeSlots || [{ start: '10:00', end: '20:00' }];
+            slots.push({ start: '10:00', end: '20:00' });
+            window.currentTimeSlots = slots;
+            renderTimeSlots(slots);
+        }
+
+        function removeTimeSlot(index) {
+            window.currentTimeSlots.splice(index, 1);
+            renderTimeSlots(window.currentTimeSlots);
+        }
+
+        async function saveDaySettings() {
+            if (!selectedDate) return;
+            
+            const isWorking = document.querySelector('input[name="day-type"]:checked').value === 'working';
+            const slots = window.currentTimeSlots || [{ start: '10:00', end: '20:00' }];
+            
+            const data = {
+                date: selectedDate,
+                is_working: isWorking,
+                start_time: isWorking ? slots[0].start : null,
+                end_time: isWorking ? slots[0].end : null,
+                break_start: isWorking ? document.getElementById('lunch-start').value : null,
+                break_end: isWorking ? document.getElementById('lunch-end').value : null
+            };
+            
+            try {
+                await apiPost('/schedule', data);
+                showNotification('Расписание сохранено!');
+                closeModal();
+                loadSchedule();
+            } catch (error) {
+                showNotification('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function generateNextMonth() {
+            if (!confirm('Сгенерировать расписание на следующий месяц?\n\nПонедельник-пятница — рабочие дни\nСуббота-воскресенье — выходные')) return;
+            
+            const nextMonth = new Date(currentMonth);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            
+            const year = nextMonth.getFullYear();
+            const month = nextMonth.getMonth() + 1;
+            const daysInMonth = new Date(year, month, 0).getDate();
+            
+            let saved = 0;
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = new Date(dateStr).getDay();
+                const isWorking = dayOfWeek !== 0 && dayOfWeek !== 6;
+                
+                try {
+                    await apiPost('/schedule', {
+                        date: dateStr,
+                        is_working: isWorking,
+                        start_time: isWorking ? '10:00' : null,
+                        end_time: isWorking ? '20:00' : null,
+                        break_start: isWorking ? '14:00' : null,
+                        break_end: isWorking ? '15:00' : null
+                    });
+                    saved++;
+                } catch (error) {
+                    console.error(`Error saving ${dateStr}:`, error);
+                }
+            }
+            
+            showNotification(`Расписание создано для ${saved} дней!`);
+            loadSchedule();
+        }
+
+        async function exportToCSV() {
+            try {
+                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                
+                let csv = 'Дата,Время,Услуга,Клиент,Телефон,Цена,Статус\n';
+                appointments.forEach(apt => {
+                    csv += `${apt.appointment_date},${apt.appointment_time},"${apt.service_name || ''}",${apt.full_name || ''},${apt.phone || ''},${apt.price || 0},${apt.status}\n`;
+                });
+                
+                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `appointments_${getToday()}.csv`;
+                link.click();
+                
+                showNotification('Экспорт завершён!');
+            } catch (error) {
+                showNotification('Ошибка экспорта: ' + error.message, 'error');
+            }
+        }
+
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.ready(); tg.expand(); }
+
+        loadTodayAppointments();
+    </script>
+</body>
+</html>
