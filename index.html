@@ -91,11 +91,10 @@
         .sub-service-name { font-size: 0.9rem; color: var(--feature-title-color); }
         .sub-service-price { font-weight: 600; color: var(--color-2); }
 
-        /* Photo Notice */
-        .photo-notice { display: none; margin-top: 12px; padding: 12px; background: rgba(253,203,228,0.3); border-radius: 12px; border: 1px dashed var(--color-3); }
-        .photo-notice.visible { display: flex; align-items: center; gap: 10px; animation: fadeIn 0.3s ease; }
-        .photo-notice-icon { font-size: 1.5rem; }
-        .photo-notice-text { font-size: 0.9rem; color: var(--color-2); }
+        /* Total price bar */
+        .total-bar { background: white; border: 2px solid var(--color-2); border-radius: 16px; padding: 16px; margin-top: 16px; text-align: center; }
+        .total-label { font-size: 0.9rem; color: var(--feature-desc-color); }
+        .total-amount { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 700; color: var(--color-2); margin-top: 4px; }
 
         /* Date & Time */
         .datetime-section { margin-top: 24px; }
@@ -103,10 +102,13 @@
         .form-label { display: block; font-weight: 600; color: var(--feature-title-color); margin-bottom: 10px; font-size: 0.95rem; }
         .date-input { width: 100%; padding: 14px 16px; font-family: var(--font-body); font-size: 1rem; color: var(--feature-title-color); background: white; border: 2px solid var(--feature-card-border); border-radius: 12px; outline: none; transition: all 0.3s ease; cursor: pointer; }
         .date-input:focus { border-color: var(--color-2); box-shadow: 0 0 0 4px rgba(95,18,39,0.1); }
+        .text-input { width: 100%; padding: 14px 16px; font-family: var(--font-body); font-size: 1rem; color: var(--feature-title-color); background: white; border: 2px solid var(--feature-card-border); border-radius: 12px; outline: none; transition: all 0.3s ease; }
+        .text-input:focus { border-color: var(--color-2); box-shadow: 0 0 0 4px rgba(95,18,39,0.1); }
         .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .time-slot { padding: 12px 8px; text-align: center; background: white; border: 2px solid var(--feature-card-border); border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-weight: 500; font-size: 0.9rem; color: var(--feature-title-color); }
         .time-slot:hover { border-color: var(--color-2); background: rgba(95,18,39,0.03); }
         .time-slot.selected { background: var(--primary-button-bg); border-color: var(--primary-button-bg); color: var(--primary-button-text); }
+        .time-slot.disabled { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; }
 
         /* Appointments */
         .appointments-list { display: flex; flex-direction: column; gap: 12px; }
@@ -121,6 +123,8 @@
         .empty-state { text-align: center; padding: 40px 20px; color: var(--feature-desc-color); }
         .empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
         .empty-state-text { font-size: 1rem; }
+        .day-off-notice { background: rgba(231,76,60,0.1); border: 1px dashed #e74c3c; color: #e74c3c; padding: 12px; border-radius: 12px; text-align: center; font-weight: 500; display: none; }
+        .day-off-notice.visible { display: block; }
 
         /* Footer */
         .footer { margin-top: 32px; padding: 20px; background: white; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
@@ -142,6 +146,9 @@
         .modal-btn:hover { opacity: 0.9; }
         .modal-btn-secondary { background: transparent; color: var(--color-2); border: 2px solid var(--color-2); }
         .modal-btn-secondary:hover { background: rgba(95,18,39,0.05); }
+        .payment-details { text-align: left; background: rgba(95,18,39,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .payment-details p { margin: 6px 0; font-size: 0.9rem; }
+        .payment-details strong { color: var(--hero-title-color); }
 
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1001; }
 
@@ -150,7 +157,7 @@
 </head>
 <body>
     <canvas id="confetti-canvas"></canvas>
-    
+
     <div class="app">
         <header class="header">
             <div class="header-logo">
@@ -170,8 +177,12 @@
         <main class="main">
             <div class="tab-content active" id="booking-tab">
                 <section class="services-section">
-                    <h2 class="section-title">Выберите услугу</h2>
+                    <h2 class="section-title">Выберите услуги</h2>
                     <div class="services-grid" id="services-grid"></div>
+                    <div class="total-bar" id="total-bar" style="display:none;">
+                        <div class="total-label">Итоговая стоимость</div>
+                        <div class="total-amount" id="total-amount">0 ₽</div>
+                    </div>
                 </section>
 
                 <section class="datetime-section">
@@ -179,10 +190,23 @@
                     <div class="form-group">
                         <label class="form-label">📅 Выберите дату</label>
                         <input type="date" class="date-input" id="date-input">
+                        <div class="day-off-notice" id="day-off-notice">😴 Мастер не работает в этот день. Выберите другую дату.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">⏰ Выберите время</label>
                         <div class="time-grid" id="time-grid"></div>
+                    </div>
+                </section>
+
+                <section class="datetime-section" id="client-info-section">
+                    <h2 class="section-title">Ваши данные</h2>
+                    <div class="form-group">
+                        <label class="form-label">👤 ФИО</label>
+                        <input type="text" class="text-input" id="client-name" placeholder="Иванова Мария Сергеевна">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">📞 Телефон</label>
+                        <input type="tel" class="text-input" id="client-phone" placeholder="+7 (999) 123-45-67">
                     </div>
                 </section>
 
@@ -213,13 +237,32 @@
         </main>
     </div>
 
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal">
+            <div class="modal-icon">💳</div>
+            <h3 class="modal-title">Оплата записи</h3>
+            <div class="modal-text" id="payment-summary"></div>
+            <div class="payment-details">
+                <p><strong>Сбербанк:</strong></p>
+                <p>Номер: 79872844793</p>
+                <p>Получатель: Топтунов М.В.</p>
+                <p style="margin-top:10px;"><strong>Тинькофф:</strong></p>
+                <p>Номер: 79872844793</p>
+                <p>Получатель: Топтунов М.В.</p>
+            </div>
+            <button class="modal-btn" id="confirm-payment-btn">✅ Я оплатил(а)</button>
+            <button class="modal-btn modal-btn-secondary" id="cancel-payment-btn">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
     <div class="modal-overlay" id="success-modal">
         <div class="modal">
             <div class="modal-icon">💅</div>
             <h3 class="modal-title">Запись создана!</h3>
             <p class="modal-text" id="modal-text"></p>
             <button class="modal-btn" id="modal-close-btn">Отлично!</button>
-            <button class="modal-btn modal-btn-secondary" id="send-photo-btn" style="display:none;">📤 Отправить фото дизайна</button>
         </div>
     </div>
 
@@ -228,99 +271,240 @@
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
 
-        let services = [];
-        let availableTimeSlots = [];
-        const ALL_TIME_SLOTS = ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
-
-        async function loadServices() {
-            try {
-                services = await apiGet('/services');
-            } catch (e) {
-                console.error('Failed to load services', e);
-                services = [];
+        // ========== Данные услуг ==========
+        const SERVICE_CATEGORIES = [
+            {
+                id: 'own_nails',
+                name: 'Свои ногти',
+                services: [
+                    { id: 'manicure', name: 'Маникюр (без покрытия)', price: 800, duration: 60 },
+                    { id: 'coating', name: 'Покрытие гель-лак (снятие + комби-маникюр + покрытие)', price: 1800, duration: 90 }
+                ]
+            },
+            {
+                id: 'extensions',
+                name: 'Наращивание',
+                hasSizes: true,
+                services: [
+                    { id: 'ext_s', name: 'Наращивание S', size: 'S', price: 2500, duration: 120 },
+                    { id: 'ext_m', name: 'Наращивание M', size: 'M', price: 2800, duration: 130 },
+                    { id: 'ext_xl', name: 'Наращивание XL', size: 'XL', price: 3300, duration: 150 }
+                ]
+            },
+            {
+                id: 'correction',
+                name: 'Коррекция',
+                hasSizes: true,
+                services: [
+                    { id: 'cor_s', name: 'Коррекция S', size: 'S', price: 2000, duration: 90 },
+                    { id: 'cor_m', name: 'Коррекция M', size: 'M', price: 2300, duration: 100 },
+                    { id: 'cor_xl', name: 'Коррекция XL', size: 'XL', price: 2700, duration: 120 }
+                ]
+            },
+            {
+                id: 'design',
+                name: 'Дизайн',
+                hasSizes: true,
+                services: [
+                    { id: 'des_light', name: 'Дизайн Light', size: 'Light', price: 100, duration: 15 },
+                    { id: 'des_medium', name: 'Дизайн Medium', size: 'Medium', price: 200, duration: 30 },
+                    { id: 'des_hard', name: 'Дизайн Hard', size: 'Hard', price: 300, duration: 45 }
+                ]
+            },
+            {
+                id: 'extra',
+                name: 'Дополнительно',
+                services: [
+                    { id: 'claws', name: 'Когти (любая длина и дизайн)', price: 3000, duration: 150 },
+                    { id: 'removal_free', name: 'Снятие чужого покрытия', price: 0, duration: 30 },
+                    { id: 'removal_paid', name: 'Снятие чужого наращивания', price: 200, duration: 45 }
+                ]
             }
-            renderServices();
-        }
+        ];
 
-        async function loadBookedSlots(date) {
-            try {
-                const booked = await apiGet(`/booked-slots?date=${date}`);
-                availableTimeSlots = ALL_TIME_SLOTS.filter(t => !booked.includes(t));
-            } catch (e) {
-                console.error('Failed to load booked slots', e);
-                availableTimeSlots = [...ALL_TIME_SLOTS];
-            }
-            renderTimeSlots();
-        }
-
-        const state = { selectedService: null, selectedDate: null, selectedTime: null };
+        const state = {
+            selectedServices: [],
+            selectedDate: null,
+            selectedTime: null,
+            clientName: '',
+            clientPhone: ''
+        };
 
         const servicesGrid = document.getElementById('services-grid');
         const timeGrid = document.getElementById('time-grid');
         const dateInput = document.getElementById('date-input');
         const appointmentsList = document.getElementById('appointments-list');
+        const paymentModal = document.getElementById('payment-modal');
+        const paymentSummary = document.getElementById('payment-summary');
         const successModal = document.getElementById('success-modal');
         const modalText = document.getElementById('modal-text');
         const modalCloseBtn = document.getElementById('modal-close-btn');
-        const sendPhotoBtn = document.getElementById('send-photo-btn');
+        const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
+        const cancelPaymentBtn = document.getElementById('cancel-payment-btn');
         const confettiCanvas = document.getElementById('confetti-canvas');
+        const totalBar = document.getElementById('total-bar');
+        const totalAmount = document.getElementById('total-amount');
+        const dayOffNotice = document.getElementById('day-off-notice');
+        const clientNameInput = document.getElementById('client-name');
+        const clientPhoneInput = document.getElementById('client-phone');
 
+        // ========== Рендер услуг ==========
         function renderServices() {
-            servicesGrid.innerHTML = services.map(service => `
-                <div class="service-card" data-service-id="${service.id}">
+            servicesGrid.innerHTML = SERVICE_CATEGORIES.map(cat => {
+                const hasSub = cat.hasSizes;
+                const isSelected = state.selectedServices.some(s => s.catId === cat.id);
+                const selectedSub = state.selectedServices.find(s => s.catId === cat.id);
+
+                return `
+                <div class="service-card ${isSelected ? 'selected' : ''}" data-cat-id="${cat.id}">
                     <div class="service-header">
                         <div class="service-info">
-                            <div class="service-name">${service.name}</div>
-                            ${service.duration ? `<div class="service-duration">⏱ ${service.duration} мин</div>` : ''}
-                            ${service.price !== null ? `<div class="service-price">${service.price} ₽</div>` : ''}
+                            <div class="service-name">${cat.name}</div>
+                            ${!hasSub ? `<div class="service-price">от ${cat.services[0].price} ₽</div>` : ''}
                         </div>
                     </div>
-                    ${service.has_design ? `
-                        <div class="photo-notice" id="photo-${service.id}">
-                            <span class="photo-notice-icon">📸</span>
-                            <span class="photo-notice-text">Отправьте фото дизайна в чат с ботом</span>
-                        </div>
+                    ${hasSub ? `
+                    <div class="sub-services ${isSelected ? 'visible' : ''}" id="sub-${cat.id}">
+                        ${cat.services.map(sub => `
+                            <div class="sub-service-option ${selectedSub && selectedSub.serviceId === sub.id ? 'selected' : ''}" data-cat-id="${cat.id}" data-svc-id="${sub.id}">
+                                <span class="sub-service-name">${sub.size} — ${sub.name}</span>
+                                <span class="sub-service-price">${sub.price} ₽</span>
+                            </div>
+                        `).join('')}
+                    </div>
                     ` : ''}
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
-            document.querySelectorAll('.service-card').forEach(card => {
-                card.addEventListener('click', () => selectService(card.dataset.serviceId));
+            // Клики по категориям без размеров
+            document.querySelectorAll('.service-card[data-cat-id]').forEach(card => {
+                const catId = card.dataset.catId;
+                const cat = SERVICE_CATEGORIES.find(c => c.id === catId);
+                if (!cat.hasSizes) {
+                    card.addEventListener('click', () => toggleSimpleService(cat));
+                } else {
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('.sub-service-option')) return;
+                        const subEl = document.getElementById(`sub-${catId}`);
+                        if (subEl) subEl.classList.toggle('visible');
+                    });
+                }
+            });
+
+            // Клики по под-услугам
+            document.querySelectorAll('.sub-service-option').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const catId = opt.dataset.catId;
+                    const svcId = opt.dataset.svcId;
+                    toggleSubService(catId, svcId);
+                });
             });
         }
 
-        function selectService(serviceId) {
-            const service = services.find(s => s.id == serviceId);
-            state.selectedService = service;
-
-            document.querySelectorAll('.service-card').forEach(card => {
-                const isSelected = card.dataset.serviceId == serviceId;
-                card.classList.toggle('selected', isSelected);
-                const photoNotice = card.querySelector('.photo-notice');
-                if (photoNotice) photoNotice.classList.toggle('visible', isSelected);
-            });
-
+        function toggleSimpleService(cat) {
+            const existing = state.selectedServices.find(s => s.catId === cat.id);
+            if (existing) {
+                state.selectedServices = state.selectedServices.filter(s => s.catId !== cat.id);
+            } else {
+                const svc = cat.services[0];
+                state.selectedServices.push({
+                    catId: cat.id,
+                    serviceId: svc.id,
+                    name: svc.name,
+                    price: svc.price,
+                    duration: svc.duration
+                });
+            }
+            renderServices();
+            updateTotal();
             updateMainButton();
             if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
 
-        function renderTimeSlots() {
-            if (availableTimeSlots.length === 0) {
+        function toggleSubService(catId, svcId) {
+            const cat = SERVICE_CATEGORIES.find(c => c.id === catId);
+            const svc = cat.services.find(s => s.id === svcId);
+
+            // Убираем предыдущий выбор из этой категории
+            state.selectedServices = state.selectedServices.filter(s => s.catId !== catId);
+
+            // Добавляем новый (если не был выбран тот же — toggle)
+            const alreadySelected = state.selectedServices.find(s => s.serviceId === svcId);
+            if (!alreadySelected) {
+                state.selectedServices.push({
+                    catId: catId,
+                    serviceId: svcId,
+                    name: svc.name,
+                    price: svc.price,
+                    duration: svc.duration
+                });
+            }
+            renderServices();
+            updateTotal();
+            updateMainButton();
+            if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        function updateTotal() {
+            const total = state.selectedServices.reduce((sum, s) => sum + s.price, 0);
+            const duration = state.selectedServices.reduce((sum, s) => sum + s.duration, 0);
+            if (state.selectedServices.length > 0) {
+                totalBar.style.display = 'block';
+                totalAmount.textContent = `${total} ₽ (${duration} мин)`;
+            } else {
+                totalBar.style.display = 'none';
+            }
+            return { total, duration };
+        }
+
+        // ========== Дата и время ==========
+        async function handleDateChange(e) {
+            state.selectedDate = e.target.value;
+            state.selectedTime = null;
+            dayOffNotice.classList.remove('visible');
+            timeGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">⏳</div><p>Загрузка слотов...</p></div>';
+            updateMainButton();
+
+            if (state.selectedDate) {
+                try {
+                    const data = await apiGet(`/available-slots?date=${state.selectedDate}`);
+                    if (!data.is_working) {
+                        dayOffNotice.classList.add('visible');
+                        timeGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">😴</div><p>Мастер не работает в этот день</p></div>';
+                        return;
+                    }
+                    renderTimeSlots(data.slots || []);
+                } catch (e) {
+                    console.error('Failed to load slots', e);
+                    timeGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">⚠️</div><p>Ошибка загрузки слотов</p></div>';
+                }
+            }
+            if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+
+        function renderTimeSlots(slots) {
+            if (!slots || slots.length === 0) {
                 timeGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">😔</div><p>Нет доступных слотов на эту дату</p></div>';
                 return;
             }
-            timeGrid.innerHTML = availableTimeSlots.map(time => `<div class="time-slot" data-time="${time}">${time}</div>`).join('');
-            document.querySelectorAll('.time-slot').forEach(slot => { slot.addEventListener('click', () => selectTime(slot.dataset.time)); });
+            timeGrid.innerHTML = slots.map(time =>
+                `<div class="time-slot" data-time="${time}">${time}</div>`
+            ).join('');
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.addEventListener('click', () => selectTime(slot.dataset.time));
+            });
         }
 
         function selectTime(time) {
             state.selectedTime = time;
-            document.querySelectorAll('.time-slot').forEach(slot => { slot.classList.toggle('selected', slot.dataset.time === time); });
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.toggle('selected', slot.dataset.time === time);
+            });
             updateMainButton();
             if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
-
-        async function handleDateChange(e) { state.selectedDate = e.target.value; updateMainButton(); if (state.selectedDate) await loadBookedSlots(state.selectedDate); if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
 
         function setMinDate() {
             const today = new Date();
@@ -328,64 +512,130 @@
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
             dateInput.min = `${year}-${month}-${day}`;
-            dateInput.value = `${year}-${month}-${day}`;
-            state.selectedDate = dateInput.value;
-            loadBookedSlots(state.selectedDate);
         }
 
+        // ========== Main Button ==========
         function updateMainButton() {
-            const price = state.selectedService?.price;
-            const isValid = state.selectedService && state.selectedDate && state.selectedTime && price !== null;
+            const { total } = updateTotal();
+            const hasServices = state.selectedServices.length > 0;
+            const hasDate = !!state.selectedDate;
+            const hasTime = !!state.selectedTime;
+            const hasName = clientNameInput.value.trim().length > 0;
+            const hasPhone = clientPhoneInput.value.trim().length > 0;
+            const isValid = hasServices && hasDate && hasTime && hasName && hasPhone;
+
             if (tg?.MainButton) {
-                if (isValid && price !== null) { tg.MainButton.setText(`💅 Записаться — ${price} ₽`); tg.MainButton.show(); tg.MainButton.enable(); }
-                else tg.MainButton.hide();
+                if (isValid) {
+                    tg.MainButton.setText(`💅 Записаться — ${total} ₽`);
+                    tg.MainButton.show();
+                    tg.MainButton.enable();
+                } else {
+                    tg.MainButton.hide();
+                }
             }
         }
 
-        async function submitBooking() {
-            if (!state.selectedService || !state.selectedDate || !state.selectedTime) return;
-            const price = state.selectedService.price;
-            const serviceName = state.selectedService.name;
+        function submitBooking() {
+            const { total, duration } = updateTotal();
+            if (state.selectedServices.length === 0 || !state.selectedDate || !state.selectedTime) return;
+
+            const name = clientNameInput.value.trim();
+            const phone = clientPhoneInput.value.trim();
+            if (!name || !phone) {
+                alert('Пожалуйста, введите ФИО и телефон');
+                return;
+            }
+
+            // Показываем модальное окно с оплатой
+            const servicesText = state.selectedServices.map(s => `• ${s.name} — ${s.price} ₽`).join('<br>');
+            paymentSummary.innerHTML = `
+                <strong>Услуги:</strong><br>${servicesText}<br><br>
+                <strong>Итого:</strong> ${total} ₽<br>
+                <strong>Дата:</strong> ${formatDate(state.selectedDate)}<br>
+                <strong>Время:</strong> ${state.selectedTime}<br>
+                <strong>Клиент:</strong> ${name}<br>
+                <strong>Телефон:</strong> ${phone}
+            `;
+            paymentModal.classList.add('active');
+        }
+
+        async function confirmPayment() {
+            paymentModal.classList.remove('active');
+            const { total, duration } = updateTotal();
+            const name = clientNameInput.value.trim();
+            const phone = clientPhoneInput.value.trim();
 
             try {
                 await apiPost('/appointments', {
                     telegram_id: TELEGRAM_USER_ID,
-                    service_id: state.selectedService.id,
                     appointment_date: state.selectedDate,
                     appointment_time: state.selectedTime,
-                    price: price,
-                    phone: TELEGRAM_USER?.phone_number || ''
+                    price: total,
+                    total_price: total,
+                    total_duration: duration,
+                    selected_services: state.selectedServices,
+                    client_full_name: name,
+                    client_phone: phone,
+                    phone: phone
                 });
             } catch (e) {
                 alert('Ошибка при создании записи: ' + e.message);
                 return;
             }
 
-            if (tg) { tg.sendData(JSON.stringify({ service: serviceName, serviceId: state.selectedService.id, price: price, date: state.selectedDate, time: state.selectedTime })); }
+            if (tg) {
+                tg.sendData(JSON.stringify({
+                    services: state.selectedServices,
+                    total_price: total,
+                    total_duration: duration,
+                    date: state.selectedDate,
+                    time: state.selectedTime,
+                    client_full_name: name,
+                    client_phone: phone
+                }));
+            }
 
-            const appointment = { id: Date.now(), service: serviceName, serviceId: state.selectedService.id, price: price, date: state.selectedDate, time: state.selectedTime, has_design: state.selectedService.has_design };
-            showSuccessModal(appointment);
+            showSuccessModal({
+                services: state.selectedServices,
+                total_price: total,
+                date: state.selectedDate,
+                time: state.selectedTime
+            });
             if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
 
+        function formatDate(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
+        }
+
         function showSuccessModal(appointment) {
-            const dateObj = new Date(appointment.date);
-            const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
-            modalText.innerHTML = `<strong>${appointment.service}</strong><br>📅 ${dateFormatted}<br>⏰ ${appointment.time}<br>💰 ${appointment.price} ₽`;
-            sendPhotoBtn.style.display = appointment.has_design ? 'block' : 'none';
+            const servicesText = appointment.services.map(s => `• ${s.name}`).join('<br>');
+            modalText.innerHTML = `
+                <strong>Услуги:</strong><br>${servicesText}<br><br>
+                📅 ${formatDate(appointment.date)}<br>
+                ⏰ ${appointment.time}<br>
+                💰 ${appointment.total_price} ₽<br><br>
+                <small>Запись сохранена со статусом «Ожидает подтверждения оплаты»</small>
+            `;
             successModal.classList.add('active');
             launchConfetti();
         }
 
         function closeModal() {
             successModal.classList.remove('active');
-            state.selectedService = null; state.selectedTime = null;
-            document.querySelectorAll('.service-card').forEach(card => { card.classList.remove('selected'); const photoNotice = card.querySelector('.photo-notice'); if (photoNotice) photoNotice.classList.remove('visible'); });
+            state.selectedServices = [];
+            state.selectedTime = null;
+            clientNameInput.value = '';
+            clientPhoneInput.value = '';
+            renderServices();
+            updateTotal();
             document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
             updateMainButton();
             renderAppointments();
         }
 
+        // ========== Appointments ==========
         async function getAppointments() {
             if (!TELEGRAM_USER_ID) return [];
             try {
@@ -401,7 +651,7 @@
             try {
                 await apiDelete(`/appointments/${id}`);
                 renderAppointments();
-                if (state.selectedDate) await loadBookedSlots(state.selectedDate);
+                if (state.selectedDate) await handleDateChange({ target: { value: state.selectedDate } });
                 if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             } catch (e) {
                 alert('Ошибка при отмене: ' + e.message);
@@ -429,12 +679,33 @@
             });
 
             appointmentsList.innerHTML = futureAppointments.map(apt => {
-                const dateObj = new Date(apt.appointment_date);
-                const dateFormatted = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
-                return `<div class="appointment-card"><div class="appointment-header"><div class="appointment-service">${apt.service_name || apt.service}</div><div class="appointment-price">${apt.price} ₽</div></div><div class="appointment-details"><p>📅 ${dateFormatted}</p><p>⏰ ${apt.appointment_time}</p>${apt.has_design ? '<p>📸 Не забудьте отправить фото дизайна</p>' : ''}</div><button class="cancel-btn" onclick="cancelAppointment(${apt.id})">❌ Отменить запись</button></div>`;
+                const dateFormatted = formatDate(apt.appointment_date);
+                let servicesDisplay = apt.service_name || apt.service || 'Услуга';
+                if (apt.selected_services && Array.isArray(apt.selected_services)) {
+                    servicesDisplay = apt.selected_services.map(s => s.name).join(', ');
+                }
+                const statusLabels = {
+                    'pending_payment': '⏳ Ожидает оплаты',
+                    'pending': '⏳ Ожидает подтверждения',
+                    'confirmed': '✅ Подтверждено',
+                    'completed': '✓ Выполнено'
+                };
+                return `<div class="appointment-card">
+                    <div class="appointment-header">
+                        <div class="appointment-service">${servicesDisplay}</div>
+                        <div class="appointment-price">${apt.total_price || apt.price} ₽</div>
+                    </div>
+                    <div class="appointment-details">
+                        <p>📅 ${dateFormatted}</p>
+                        <p>⏰ ${apt.appointment_time}</p>
+                        <p>${statusLabels[apt.status] || apt.status}</p>
+                    </div>
+                    <button class="cancel-btn" onclick="cancelAppointment(${apt.id})">❌ Отменить запись</button>
+                </div>`;
             }).join('');
         }
 
+        // ========== Tabs ==========
         function initTabs() {
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -449,6 +720,7 @@
             });
         }
 
+        // ========== Confetti ==========
         function launchConfetti() {
             const ctx = confettiCanvas.getContext('2d');
             confettiCanvas.width = window.innerWidth;
@@ -468,15 +740,22 @@
             animate();
         }
 
+        // ========== Init ==========
         async function init() {
-            await loadServices();
+            renderServices();
             setMinDate();
             initTabs();
             renderAppointments();
             dateInput.addEventListener('change', handleDateChange);
+            clientNameInput.addEventListener('input', updateMainButton);
+            clientPhoneInput.addEventListener('input', updateMainButton);
             modalCloseBtn.addEventListener('click', closeModal);
-            sendPhotoBtn.addEventListener('click', () => { if (tg) tg.openTelegramLink('https://t.me/shchg3'); else window.open('https://t.me/shchg3', '_blank'); closeModal(); });
-            if (tg?.MainButton) { tg.MainButton.setParams({ color: '#24060a', text_color: '#fdcbe4' }); tg.MainButton.onClick(submitBooking); }
+            confirmPaymentBtn.addEventListener('click', confirmPayment);
+            cancelPaymentBtn.addEventListener('click', () => paymentModal.classList.remove('active'));
+            if (tg?.MainButton) {
+                tg.MainButton.setParams({ color: '#24060a', text_color: '#fdcbe4' });
+                tg.MainButton.onClick(submitBooking);
+            }
         }
 
         init();

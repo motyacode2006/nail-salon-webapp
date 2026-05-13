@@ -22,9 +22,9 @@
             --danger: #f43f5e;
             --shadow: 0 4px 20px rgba(95, 18, 39, 0.15);
         }
-        
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
@@ -32,7 +32,7 @@
             min-height: 100vh;
             padding-bottom: 100px;
         }
-        
+
         .header {
             background: linear-gradient(135deg, var(--color-2) 0%, var(--color-3) 100%);
             padding: 20px;
@@ -41,10 +41,10 @@
             top: 0;
             z-index: 100;
         }
-        
+
         .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 5px; }
         .header p { font-size: 14px; opacity: 0.9; }
-        
+
         .tabs {
             display: flex;
             background: var(--bg-card);
@@ -54,7 +54,7 @@
             top: 75px;
             z-index: 99;
         }
-        
+
         .tab {
             flex: 1;
             padding: 15px;
@@ -68,40 +68,40 @@
             transition: all 0.3s;
             white-space: nowrap;
         }
-        
+
         .tab.active {
             color: var(--accent);
             border-bottom: 3px solid var(--accent);
             background: rgba(95, 18, 39, 0.05);
         }
-        
+
         .content { padding: 20px; }
-        
+
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
-        
+
         .stat-card {
             background: var(--bg-card);
             border-radius: 16px;
             padding: 20px;
             box-shadow: var(--shadow);
         }
-        
+
         .stat-card .value { font-size: 28px; font-weight: 700; color: var(--accent); }
         .stat-card .label { font-size: 13px; color: var(--text-secondary); margin-top: 5px; }
-        
+
         .card {
             background: var(--bg-card);
             border-radius: 16px;
@@ -109,9 +109,33 @@
             margin-bottom: 15px;
             box-shadow: var(--shadow);
         }
-        
+
         .card-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; }
-        
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 2px solid var(--color-4);
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .filter-chip.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
         .appointment-item {
             background: var(--bg-primary);
             border-radius: 12px;
@@ -119,15 +143,18 @@
             margin-bottom: 10px;
             border-left: 4px solid var(--accent);
         }
-        
+
         .appointment-item.confirmed { border-left-color: var(--success); }
         .appointment-item.completed { border-left-color: var(--color-4); opacity: 0.7; }
         .appointment-item.cancelled { border-left-color: var(--danger); opacity: 0.5; }
-        
+        .appointment-item.pending_payment { border-left-color: var(--warning); }
+
         .appointment-time { font-size: 18px; font-weight: 700; color: var(--accent); }
         .appointment-service { font-size: 14px; margin: 5px 0; }
         .appointment-client { font-size: 13px; color: var(--text-secondary); }
-        
+        .appointment-phone { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+        .appointment-price { font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 4px; }
+
         .appointment-status {
             display: inline-block;
             padding: 4px 8px;
@@ -137,19 +164,20 @@
             text-transform: uppercase;
             margin-top: 8px;
         }
-        
-        .status-pending { background: var(--warning); color: white; }
+
+        .status-pending_payment { background: var(--warning); color: white; }
+        .status-pending { background: #6b7280; color: white; }
         .status-confirmed { background: var(--success); color: white; }
         .status-completed { background: var(--color-4); color: white; }
         .status-cancelled { background: var(--danger); color: white; }
-        
+
         .appointment-actions {
             display: flex;
             gap: 10px;
             margin-top: 10px;
             flex-wrap: wrap;
         }
-        
+
         .btn {
             padding: 10px 20px;
             border-radius: 10px;
@@ -159,19 +187,19 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .btn-sm { padding: 8px 16px; font-size: 13px; }
         .btn-primary { background: var(--accent); color: var(--color-5); }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-outline { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
-        
+
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
         }
-        
+
         .calendar-header {
             text-align: center;
             font-size: 12px;
@@ -179,7 +207,7 @@
             color: var(--text-secondary);
             padding: 10px 0;
         }
-        
+
         .calendar-day {
             aspect-ratio: 1;
             display: flex;
@@ -191,7 +219,7 @@
             transition: all 0.3s;
             background: #f1f5f9;
         }
-        
+
         .calendar-day:hover { background: var(--color-5); }
         .calendar-day.selected { background: var(--accent); color: var(--color-5); }
         .calendar-day.working { background: var(--success); color: white; }
@@ -199,17 +227,17 @@
         .calendar-day.blocked { background: #e2e8f0; color: #94a3b8; }
         .calendar-day.other-month { opacity: 0.3; }
         .calendar-day.today { border: 2px solid var(--accent); }
-        
+
         .month-selector {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        
+
         .month-name { font-size: 18px; font-weight: 600; }
         .month-nav { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--accent); padding: 5px 15px; }
-        
+
         .legend {
             display: flex;
             gap: 15px;
@@ -217,13 +245,13 @@
             margin-bottom: 15px;
             font-size: 12px;
         }
-        
+
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .legend-color { width: 16px; height: 16px; border-radius: 4px; }
-        
+
         .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
         .empty-state-icon { font-size: 48px; margin-bottom: 15px; }
-        
+
         .loading { text-align: center; padding: 40px; }
         .spinner {
             width: 40px;
@@ -234,9 +262,9 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
-        
+
         @keyframes spin { to { transform: rotate(360deg); } }
-        
+
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -254,9 +282,9 @@
             transition: all 0.3s ease;
             padding: 20px;
         }
-        
+
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        
+
         .modal {
             background: white;
             border-radius: 24px;
@@ -268,13 +296,13 @@
             transform: scale(0.9);
             transition: transform 0.3s ease;
         }
-        
+
         .modal-overlay.active .modal { transform: scale(1); }
         .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
-        
+
         .form-group { margin-bottom: 16px; }
         .form-label { display: block; font-weight: 600; margin-bottom: 8px; }
-        
+
         .form-input {
             width: 100%;
             padding: 12px;
@@ -282,12 +310,12 @@
             border-radius: 10px;
             font-size: 14px;
         }
-        
+
         .form-row { display: flex; gap: 10px; }
         .form-row .form-group { flex: 1; }
-        
+
         .radio-group { display: flex; gap: 10px; margin-bottom: 16px; }
-        
+
         .radio-option {
             flex: 1;
             padding: 12px;
@@ -297,12 +325,12 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .radio-option.selected { border-color: var(--accent); background: rgba(95, 18, 39, 0.05); }
         .radio-option input { display: none; }
-        
+
         .time-slot-list { margin-top: 10px; }
-        
+
         .time-slot-item {
             display: flex;
             align-items: center;
@@ -312,14 +340,14 @@
             border-radius: 8px;
             margin-bottom: 8px;
         }
-        
+
         .time-slot-item input {
             width: 80px;
             padding: 8px;
             border: 1px solid var(--color-4);
             border-radius: 6px;
         }
-        
+
         .time-slot-remove {
             background: var(--danger);
             color: white;
@@ -329,7 +357,7 @@
             height: 30px;
             cursor: pointer;
         }
-        
+
         .add-slot-btn {
             width: 100%;
             padding: 10px;
@@ -340,9 +368,9 @@
             color: var(--text-secondary);
             margin-top: 10px;
         }
-        
+
         .add-slot-btn:hover { border-color: var(--accent); color: var(--accent); }
-        
+
         .export-btn {
             display: flex;
             align-items: center;
@@ -359,9 +387,9 @@
             cursor: pointer;
             margin-top: 20px;
         }
-        
+
         .export-btn:hover { background: var(--accent); color: var(--color-5); }
-        
+
         .notification {
             position: fixed;
             top: 20px;
@@ -374,15 +402,15 @@
             z-index: 1001;
             animation: slideDown 0.3s ease;
         }
-        
+
         .notification.success { background: var(--success); }
         .notification.error { background: var(--danger); }
-        
+
         @keyframes slideDown {
             from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
-        
+
         @media (max-width: 400px) {
             .stats-grid { grid-template-columns: 1fr; }
             .radio-group { flex-direction: column; }
@@ -394,14 +422,14 @@
         <h1>💅 Панель мастера</h1>
         <p>GoNails Salon</p>
     </div>
-    
+
     <div class="tabs">
         <button class="tab active" data-tab="today">Сегодня</button>
         <button class="tab" data-tab="all">Все записи</button>
         <button class="tab" data-tab="stats">Статистика</button>
         <button class="tab" data-tab="schedule">Расписание</button>
     </div>
-    
+
     <div class="content">
         <div id="today" class="tab-content active">
             <div class="stats-grid">
@@ -421,17 +449,25 @@
                 </div>
             </div>
         </div>
-        
+
         <div id="all" class="tab-content">
             <div class="card">
-                <div class="card-title">📋 Все будущие записи</div>
+                <div class="card-title">📋 Все записи</div>
+                <div class="filter-row">
+                    <div class="filter-chip active" data-filter="all">Все</div>
+                    <div class="filter-chip" data-filter="pending_payment">Оплата</div>
+                    <div class="filter-chip" data-filter="pending">Ожидают</div>
+                    <div class="filter-chip" data-filter="confirmed">Подтверждены</div>
+                    <div class="filter-chip" data-filter="completed">Выполнены</div>
+                    <div class="filter-chip" data-filter="cancelled">Отменены</div>
+                </div>
                 <div id="all-appointments">
                     <div class="loading"><div class="spinner"></div><p>Загрузка...</p></div>
                 </div>
             </div>
             <button class="export-btn" onclick="exportToCSV()">📥 Экспорт в CSV</button>
         </div>
-        
+
         <div id="stats" class="tab-content">
             <div class="stats-grid">
                 <div class="stat-card">
@@ -456,7 +492,7 @@
                 <div id="services-stats"></div>
             </div>
         </div>
-        
+
         <div id="schedule" class="tab-content">
             <div class="card">
                 <div class="card-title">📅 Управление расписанием</div>
@@ -491,7 +527,7 @@
     <div class="modal-overlay" id="day-modal">
         <div class="modal">
             <div class="modal-title" id="modal-date-title">Редактирование даты</div>
-            
+
             <div class="form-group">
                 <label class="form-label">Тип дня</label>
                 <div class="radio-group">
@@ -505,7 +541,7 @@
                     </label>
                 </div>
             </div>
-            
+
             <div id="time-slots-section">
                 <div class="form-group">
                     <label class="form-label">Временные слоты</label>
@@ -523,7 +559,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="form-row" style="margin-top: 20px;">
                 <button class="btn btn-outline" style="flex: 1;" onclick="closeModal()">Отмена</button>
                 <button class="btn btn-primary" style="flex: 1;" onclick="saveDaySettings()">Сохранить</button>
@@ -543,6 +579,15 @@
         let scheduleData = {};
         let appointmentsData = [];
         let selectedDate = null;
+        let currentFilter = 'all';
+
+        const statusLabels = {
+            'pending_payment': 'Ожидает оплаты',
+            'pending': 'Ожидает',
+            'confirmed': 'Подтверждено',
+            'completed': 'Выполнено',
+            'cancelled': 'Отменено'
+        };
 
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
@@ -576,32 +621,47 @@
             });
         });
 
+        // Filters
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentFilter = chip.dataset.filter;
+                loadAllAppointments();
+            });
+        });
+
         async function loadTodayAppointments() {
             const container = document.getElementById('today-appointments');
             const today = getToday();
-            
+
             try {
                 const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
                 const todayApts = appointments.filter(a => a.appointment_date === today);
                 appointmentsData = appointments;
-                
+
                 if (!todayApts?.length) {
                     container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>На сегодня записей нет</p></div>';
                 } else {
                     container.innerHTML = todayApts.map(apt => renderAppointmentCard(apt, true)).join('');
                 }
-                
+
                 document.getElementById('today-count').textContent = todayApts?.length || 0;
-                document.getElementById('today-revenue').textContent = (todayApts?.reduce((sum, a) => sum + (a.price || 0), 0) || 0) + '₽';
+                document.getElementById('today-revenue').textContent = (todayApts?.reduce((sum, a) => sum + (a.total_price || a.price || 0), 0) || 0) + '₽';
             } catch (error) {
                 container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка: ${error.message}</p></div>`;
             }
         }
 
         function renderAppointmentCard(apt, showActions = false) {
-            const statusClass = apt.status === 'confirmed' ? 'confirmed' : apt.status === 'completed' ? 'completed' : apt.status === 'cancelled' ? 'cancelled' : '';
-            const statusText = { 'pending': 'Ожидает', 'confirmed': 'Подтверждено', 'completed': 'Выполнено', 'cancelled': 'Отменено' };
-            
+            const statusClass = apt.status || 'pending';
+            const statusText = statusLabels[apt.status] || 'Ожидает';
+
+            let servicesDisplay = apt.service_name || apt.service || 'Услуга';
+            if (apt.selected_services && Array.isArray(apt.selected_services)) {
+                servicesDisplay = apt.selected_services.map(s => s.name).join(', ');
+            }
+
             let actions = '';
             if (showActions && apt.status !== 'cancelled' && apt.status !== 'completed') {
                 actions = `<div class="appointment-actions">
@@ -610,12 +670,17 @@
                     <button class="btn btn-sm btn-danger" onclick="updateStatus(${apt.id}, 'cancelled')">❌ Отменить</button>
                 </div>`;
             }
-            
+
+            const clientInfo = apt.client_full_name || apt.full_name || 'Клиент';
+            const phoneInfo = apt.client_phone || apt.phone || apt.user_phone || '';
+
             return `<div class="appointment-item ${statusClass}">
                 <div class="appointment-time">⏰ ${apt.appointment_time}</div>
-                <div class="appointment-service">${apt.service_name || apt.service}</div>
-                <div class="appointment-client">👤 ${apt.full_name || 'Клиент'} ${apt.phone ? '• 📞 ' + apt.phone : ''}</div>
-                <span class="appointment-status status-${apt.status}">${statusText[apt.status] || 'Ожидает'}</span>
+                <div class="appointment-service">${servicesDisplay}</div>
+                <div class="appointment-client">👤 ${clientInfo}</div>
+                ${phoneInfo ? `<div class="appointment-phone">📞 ${phoneInfo}</div>` : ''}
+                <div class="appointment-price">💰 ${apt.total_price || apt.price || 0} ₽</div>
+                <span class="appointment-status status-${statusClass}">${statusText}</span>
                 ${actions}
             </div>`;
         }
@@ -625,6 +690,7 @@
                 await apiPatch(`/appointments/${id}`, { status });
                 showNotification(status === 'confirmed' ? 'Запись подтверждена!' : status === 'completed' ? 'Запись выполнена!' : 'Запись отменена');
                 loadTodayAppointments();
+                loadAllAppointments();
             } catch (error) {
                 showNotification('Ошибка: ' + error.message, 'error');
             }
@@ -632,30 +698,33 @@
 
         async function loadAllAppointments() {
             const container = document.getElementById('all-appointments');
-            
+
             try {
                 const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
-                const future = appointments.filter(a => a.appointment_date >= getToday());
-                
+                const future = appointments.filter(a => {
+                    if (currentFilter !== 'all' && a.status !== currentFilter) return false;
+                    return a.appointment_date >= getToday();
+                });
+
                 if (!future?.length) {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Нет будущих записей</p></div>';
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Нет записей по выбранному фильтру</p></div>';
                     return;
                 }
-                
+
                 const grouped = {};
                 future.forEach(apt => {
                     if (!grouped[apt.appointment_date]) grouped[apt.appointment_date] = [];
                     grouped[apt.appointment_date].push(apt);
                 });
-                
+
                 let html = '';
                 Object.keys(grouped).sort().forEach(date => {
-                    const dateObj = new Date(date);
+                    const dateObj = new Date(date + 'T00:00:00');
                     const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' });
                     html += `<div style="margin: 20px 0 10px; font-weight: 600; color: var(--accent);">📅 ${dateStr}</div>`;
                     grouped[date].forEach(apt => { html += renderAppointmentCard(apt, true); });
                 });
-                
+
                 container.innerHTML = html;
             } catch (error) {
                 container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка: ${error.message}</p></div>`;
@@ -665,18 +734,18 @@
         async function loadStatistics() {
             try {
                 const stats = await apiGet('/statistics');
-                
+
                 if (!stats) return;
-                
+
                 document.getElementById('stat-total').textContent = stats.total_appointments;
                 document.getElementById('stat-month').textContent = stats.this_month;
                 document.getElementById('stat-clients').textContent = stats.unique_clients;
                 document.getElementById('stat-revenue').textContent = stats.revenue + '₽';
-                
+
                 const servicesContainer = document.getElementById('services-stats');
                 const sortedServices = Object.entries(stats.services_stats).sort((a, b) => b[1] - a[1]);
-                
-                servicesContainer.innerHTML = sortedServices.length ? sortedServices.map(([service, count]) => 
+
+                servicesContainer.innerHTML = sortedServices.length ? sortedServices.map(([service, count]) =>
                     `<div style="display:flex;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--color-4);">
                         <span>${service}</span>
                         <span style="font-weight:600;color:var(--accent);">${count} записей</span>
@@ -690,7 +759,7 @@
         async function loadSchedule() {
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth() + 1;
-            
+
             try {
                 const schedule = await apiGet(`/schedule?year=${year}&month=${month}`);
                 scheduleData = {};
@@ -705,36 +774,36 @@
         function renderCalendar() {
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
-            
+
             document.getElementById('month-name').textContent = `${getMonthName(month)} ${year}`;
-            
+
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const startDay = firstDay.getDay() || 7;
             const today = getToday();
-            
+
             let html = '<div class="calendar-header">Пн</div><div class="calendar-header">Вт</div><div class="calendar-header">Ср</div><div class="calendar-header">Чт</div><div class="calendar-header">Пт</div><div class="calendar-header">Сб</div><div class="calendar-header">Вс</div>';
-            
+
             for (let i = 1; i < startDay; i++) { html += '<div class="calendar-day other-month"></div>'; }
-            
+
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const scheduleItem = scheduleData[dateStr];
-                const dayOfWeek = new Date(dateStr).getDay();
-                
+                const dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
+
                 let classes = 'calendar-day';
-                
+
                 if (scheduleItem) {
                     classes += scheduleItem.is_working ? ' working' : ' weekend';
                 } else {
                     classes += (dayOfWeek === 0 || dayOfWeek === 6) ? ' weekend' : ' blocked';
                 }
-                
+
                 if (dateStr === today) classes += ' today';
-                
+
                 html += `<div class="${classes}" data-date="${dateStr}" onclick="openDayModal('${dateStr}')">${day}</div>`;
             }
-            
+
             document.getElementById('calendar').innerHTML = html;
         }
 
@@ -743,23 +812,23 @@
 
         function openDayModal(dateStr) {
             selectedDate = dateStr;
-            const date = new Date(dateStr);
+            const date = new Date(dateStr + 'T00:00:00');
             document.getElementById('modal-date-title').textContent = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
-            
+
             const scheduleItem = scheduleData[dateStr];
             const isWorking = scheduleItem ? scheduleItem.is_working !== false : true;
-            
+
             document.querySelector('#working-option').classList.toggle('selected', isWorking);
             document.querySelector('#weekend-option').classList.toggle('selected', !isWorking);
             document.querySelector(`input[name="day-type"][value="${isWorking ? 'working' : 'weekend'}"]`).checked = true;
-            
+
             const timeSlots = scheduleItem ? [{ start: scheduleItem.start_time || '10:00', end: scheduleItem.end_time || '20:00' }] : [{ start: '10:00', end: '20:00' }];
             renderTimeSlots(timeSlots);
-            
+
             document.getElementById('lunch-start').value = scheduleItem?.break_start || '14:00';
             document.getElementById('lunch-end').value = scheduleItem?.break_end || '15:00';
             document.getElementById('time-slots-section').style.display = isWorking ? 'block' : 'none';
-            
+
             document.getElementById('day-modal').classList.add('active');
         }
 
@@ -801,10 +870,10 @@
 
         async function saveDaySettings() {
             if (!selectedDate) return;
-            
+
             const isWorking = document.querySelector('input[name="day-type"]:checked').value === 'working';
             const slots = window.currentTimeSlots || [{ start: '10:00', end: '20:00' }];
-            
+
             const data = {
                 date: selectedDate,
                 is_working: isWorking,
@@ -813,7 +882,7 @@
                 break_start: isWorking ? document.getElementById('lunch-start').value : null,
                 break_end: isWorking ? document.getElementById('lunch-end').value : null
             };
-            
+
             try {
                 await apiPost('/schedule', data);
                 showNotification('Расписание сохранено!');
@@ -826,21 +895,21 @@
 
         async function generateNextMonth() {
             if (!confirm('Сгенерировать расписание на следующий месяц?\n\nПонедельник-пятница — рабочие дни\nСуббота-воскресенье — выходные')) return;
-            
+
             const nextMonth = new Date(currentMonth);
             nextMonth.setMonth(nextMonth.getMonth() + 1);
-            
+
             const year = nextMonth.getFullYear();
             const month = nextMonth.getMonth() + 1;
             const daysInMonth = new Date(year, month, 0).getDate();
-            
+
             let saved = 0;
-            
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayOfWeek = new Date(dateStr).getDay();
+                const dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
                 const isWorking = dayOfWeek !== 0 && dayOfWeek !== 6;
-                
+
                 try {
                     await apiPost('/schedule', {
                         date: dateStr,
@@ -855,7 +924,7 @@
                     console.error(`Error saving ${dateStr}:`, error);
                 }
             }
-            
+
             showNotification(`Расписание создано для ${saved} дней!`);
             loadSchedule();
         }
@@ -863,18 +932,24 @@
         async function exportToCSV() {
             try {
                 const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
-                
-                let csv = 'Дата,Время,Услуга,Клиент,Телефон,Цена,Статус\n';
+
+                let csv = 'Дата,Время,Клиент,Телефон,Услуги,Сумма,Статус\n';
                 appointments.forEach(apt => {
-                    csv += `${apt.appointment_date},${apt.appointment_time},"${apt.service_name || ''}",${apt.full_name || ''},${apt.phone || ''},${apt.price || 0},${apt.status}\n`;
+                    let services = apt.service_name || apt.service || '';
+                    if (apt.selected_services && Array.isArray(apt.selected_services)) {
+                        services = apt.selected_services.map(s => s.name).join('; ');
+                    }
+                    const client = (apt.client_full_name || apt.full_name || '').replace(/"/g, '""');
+                    const phone = apt.client_phone || apt.phone || apt.user_phone || '';
+                    csv += `${apt.appointment_date},${apt.appointment_time},"${client}","${phone}","${services}",${apt.total_price || apt.price || 0},${apt.status}\n`;
                 });
-                
+
                 const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `appointments_${getToday()}.csv`;
                 link.click();
-                
+
                 showNotification('Экспорт завершён!');
             } catch (error) {
                 showNotification('Ошибка экспорта: ' + error.message, 'error');
