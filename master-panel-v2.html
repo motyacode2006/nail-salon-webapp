@@ -825,8 +825,8 @@
             const timeSlots = scheduleItem ? [{ start: scheduleItem.start_time || '10:00', end: scheduleItem.end_time || '20:00' }] : [{ start: '10:00', end: '20:00' }];
             renderTimeSlots(timeSlots);
 
-            document.getElementById('lunch-start').value = scheduleItem?.break_start || '14:00';
-            document.getElementById('lunch-end').value = scheduleItem?.break_end || '15:00';
+            document.getElementById('lunch-start').value = scheduleItem?.lunch_start || '14:00';
+            document.getElementById('lunch-end').value = scheduleItem?.lunch_end || '15:00';
             document.getElementById('time-slots-section').style.display = isWorking ? 'block' : 'none';
 
             document.getElementById('day-modal').classList.add('active');
@@ -877,10 +877,10 @@
             const data = {
                 date: selectedDate,
                 is_working: isWorking,
-                start_time: isWorking ? slots[0].start : null,
-                end_time: isWorking ? slots[0].end : null,
-                break_start: isWorking ? document.getElementById('lunch-start').value : null,
-                break_end: isWorking ? document.getElementById('lunch-end').value : null
+                start_time: isWorking ? slots[0].start : '10:00',
+                end_time: isWorking ? slots[0].end : '20:00',
+                lunch_start: isWorking ? document.getElementById('lunch-start').value : '14:00',
+                lunch_end: isWorking ? document.getElementById('lunch-end').value : '15:00'
             };
 
             try {
@@ -914,10 +914,10 @@
                     await apiPost('/schedule', {
                         date: dateStr,
                         is_working: isWorking,
-                        start_time: isWorking ? '10:00' : null,
-                        end_time: isWorking ? '20:00' : null,
-                        break_start: isWorking ? '14:00' : null,
-                        break_end: isWorking ? '15:00' : null
+                        start_time: isWorking ? '10:00' : '10:00',
+                        end_time: isWorking ? '20:00' : '20:00',
+                        lunch_start: isWorking ? '14:00' : '14:00',
+                        lunch_end: isWorking ? '15:00' : '15:00'
                     });
                     saved++;
                 } catch (error) {

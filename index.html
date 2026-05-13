@@ -243,13 +243,8 @@
             <div class="modal-icon">💳</div>
             <h3 class="modal-title">Оплата записи</h3>
             <div class="modal-text" id="payment-summary"></div>
-            <div class="payment-details">
-                <p><strong>Сбербанк:</strong></p>
-                <p>Номер: 79872844793</p>
-                <p>Получатель: Топтунов М.В.</p>
-                <p style="margin-top:10px;"><strong>Тинькофф:</strong></p>
-                <p>Номер: 79872844793</p>
-                <p>Получатель: Топтунов М.В.</p>
+            <div class="payment-details" id="payment-details">
+                <p>Загрузка реквизитов...</p>
             </div>
             <button class="modal-btn" id="confirm-payment-btn">✅ Я оплатил(а)</button>
             <button class="modal-btn modal-btn-secondary" id="cancel-payment-btn">Отмена</button>
@@ -270,6 +265,42 @@
     <script>
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
+
+        // ========== Загрузка реквизитов оплаты ==========
+        let paymentRequisites = {
+            sber_phone: '79872844793',
+            sber_name: 'Топтунов М.В.',
+            tinkoff_phone: '79872844793',
+            tinkoff_name: 'Топтунов М.В.'
+        };
+
+        async function loadPaymentRequisites() {
+            try {
+                const settings = await apiGet('/settings');
+                if (settings) {
+                    paymentRequisites = {
+                        sber_phone: settings.sber_phone || '79872844793',
+                        sber_name: settings.sber_name || 'Топтунов М.В.',
+                        tinkoff_phone: settings.tinkoff_phone || '79872844793',
+                        tinkoff_name: settings.tinkoff_name || 'Топтунов М.В.'
+                    };
+                }
+            } catch (e) {
+                console.error('Failed to load payment requisites:', e);
+            }
+        }
+
+        function renderPaymentDetails() {
+            const details = document.getElementById('payment-details');
+            details.innerHTML = `
+                <p><strong>Сбербанк:</strong></p>
+                <p>Номер: ${paymentRequisites.sber_phone}</p>
+                <p>Получатель: ${paymentRequisites.sber_name}</p>
+                <p style="margin-top:10px;"><strong>Тинькофф:</strong></p>
+                <p>Номер: ${paymentRequisites.tinkoff_phone}</p>
+                <p>Получатель: ${paymentRequisites.tinkoff_name}</p>
+            `;
+        }
 
         // ========== Данные услуг ==========
         const SERVICE_CATEGORIES = [
@@ -535,7 +566,7 @@
             }
         }
 
-        function submitBooking() {
+        async function submitBooking() {
             const { total, duration } = updateTotal();
             if (state.selectedServices.length === 0 || !state.selectedDate || !state.selectedTime) return;
 
@@ -545,6 +576,10 @@
                 alert('Пожалуйста, введите ФИО и телефон');
                 return;
             }
+
+            // Загружаем реквизиты перед показом модалки
+            await loadPaymentRequisites();
+            renderPaymentDetails();
 
             // Показываем модальное окно с оплатой
             const servicesText = state.selectedServices.map(s => `• ${s.name} — ${s.price} ₽`).join('<br>');
