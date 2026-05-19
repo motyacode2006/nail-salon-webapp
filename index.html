@@ -251,6 +251,11 @@
         </div>
     </div>
 
+    <!-- Fallback кнопка для браузера -->
+    <div id="fallback-submit" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: calc(100% - 40px); max-width: 460px;">
+        <button class="modal-btn" style="width: 100%; box-shadow: 0 4px 20px rgba(36,6,10,0.4);">💅 Записаться</button>
+    </div>
+
     <!-- Success Modal -->
     <div class="modal-overlay" id="success-modal">
         <div class="modal">
@@ -302,56 +307,56 @@
             `;
         }
 
-        // ========== Данные услуг ==========
-        const SERVICE_CATEGORIES = [
-            {
-                id: 'own_nails',
-                name: 'Свои ногти',
-                services: [
-                    { id: 'manicure', name: 'Маникюр (без покрытия)', price: 800, duration: 60 },
-                    { id: 'coating', name: 'Покрытие гель-лак (снятие + комби-маникюр + покрытие)', price: 1800, duration: 90 }
-                ]
-            },
-            {
-                id: 'extensions',
-                name: 'Наращивание',
-                hasSizes: true,
-                services: [
-                    { id: 'ext_s', name: 'Наращивание S', size: 'S', price: 2500, duration: 120 },
-                    { id: 'ext_m', name: 'Наращивание M', size: 'M', price: 2800, duration: 130 },
-                    { id: 'ext_xl', name: 'Наращивание XL', size: 'XL', price: 3300, duration: 150 }
-                ]
-            },
-            {
-                id: 'correction',
-                name: 'Коррекция',
-                hasSizes: true,
-                services: [
-                    { id: 'cor_s', name: 'Коррекция S', size: 'S', price: 2000, duration: 90 },
-                    { id: 'cor_m', name: 'Коррекция M', size: 'M', price: 2300, duration: 100 },
-                    { id: 'cor_xl', name: 'Коррекция XL', size: 'XL', price: 2700, duration: 120 }
-                ]
-            },
-            {
-                id: 'design',
-                name: 'Дизайн',
-                hasSizes: true,
-                services: [
-                    { id: 'des_light', name: 'Дизайн Light', size: 'Light', price: 100, duration: 15 },
-                    { id: 'des_medium', name: 'Дизайн Medium', size: 'Medium', price: 200, duration: 30 },
-                    { id: 'des_hard', name: 'Дизайн Hard', size: 'Hard', price: 300, duration: 45 }
-                ]
-            },
-            {
-                id: 'extra',
-                name: 'Дополнительно',
-                services: [
-                    { id: 'claws', name: 'Когти (любая длина и дизайн)', price: 3000, duration: 150 },
-                    { id: 'removal_free', name: 'Снятие чужого покрытия', price: 0, duration: 30 },
-                    { id: 'removal_paid', name: 'Снятие чужого наращивания', price: 200, duration: 45 }
-                ]
+        // ========== Данные услуг (загружаются из API) ==========
+        let SERVICE_CATEGORIES = [];
+        let servicesLoaded = false;
+
+        // Маппинг категорий с бэкенда на локальные ID
+        const CATEGORY_MAP = {
+            'natural': { id: 'own_nails', name: 'Свои ногти', hasSizes: false },
+            'coating': { id: 'coating', name: 'Покрытие гель-лак', hasSizes: false },
+            'extension': { id: 'extensions', name: 'Наращивание', hasSizes: true },
+            'correction': { id: 'correction', name: 'Коррекция', hasSizes: true },
+            'design': { id: 'design', name: 'Дизайн', hasSizes: true },
+            'additional': { id: 'extra', name: 'Дополнительно', hasSizes: false },
+            'removal': { id: 'removal', name: 'Снятие', hasSizes: false }
+        };
+
+        async function loadServices() {
+            try {
+                const services = await apiGet('/services');
+                // Группируем услуги по категориям
+                const grouped = {};
+                services.forEach(svc => {
+                    const catInfo = CATEGORY_MAP[svc.category] || { id: svc.category, name: svc.category, hasSizes: !!svc.size };
+                    const catId = catInfo.id;
+                    if (!grouped[catId]) {
+                        grouped[catId] = {
+                            id: catId,
+                            name: catInfo.name,
+                            hasSizes: catInfo.hasSizes,
+                            services: []
+                        };
+                    }
+                    grouped[catId].services.push({
+                        id: svc.id,
+                        name: svc.name,
+                        size: svc.size,
+                        price: svc.price,
+                        duration: svc.duration
+                    });
+                });
+                // Сортируем категории: Свои ногти, Наращивание, Коррекция, Дизайн, Дополнительно
+                const order = ['own_nails', 'coating', 'extensions', 'correction', 'design', 'extra', 'removal'];
+                SERVICE_CATEGORIES = order.map(id => grouped[id]).filter(Boolean);
+                servicesLoaded = true;
+                console.log('✅ Услуги загружены из БД:', SERVICE_CATEGORIES);
+            } catch (e) {
+                console.error('❌ Ошибка загрузки услуг:', e);
+                // Fallback - пустой массив, услуги не покажутся
+                SERVICE_CATEGORIES = [];
             }
-        ];
+        }
 
         const state = {
             selectedServices: [],
@@ -378,6 +383,8 @@
         const dayOffNotice = document.getElementById('day-off-notice');
         const clientNameInput = document.getElementById('client-name');
         const clientPhoneInput = document.getElementById('client-phone');
+        const fallbackSubmit = document.getElementById('fallback-submit');
+        const fallbackSubmitBtn = fallbackSubmit.querySelector('button');
 
         // ========== Рендер услуг ==========
         function renderServices() {
@@ -564,6 +571,11 @@
                     tg.MainButton.hide();
                 }
             }
+
+            // Fallback кнопка для браузера
+            if (!tg?.MainButton) {
+                fallbackSubmit.style.display = isValid ? 'block' : 'none';
+            }
         }
 
         async function submitBooking() {
@@ -600,9 +612,15 @@
             const name = clientNameInput.value.trim();
             const phone = clientPhoneInput.value.trim();
 
+            // Используем TELEGRAM_USER_ID или генерируем временный ID для браузера
+            const userId = TELEGRAM_USER_ID || localStorage.getItem('temp_user_id') || Date.now();
+            if (!localStorage.getItem('temp_user_id') && !TELEGRAM_USER_ID) {
+                localStorage.setItem('temp_user_id', userId);
+            }
+
             try {
                 await apiPost('/appointments', {
-                    telegram_id: TELEGRAM_USER_ID,
+                    telegram_id: userId,
                     appointment_date: state.selectedDate,
                     appointment_time: state.selectedTime,
                     price: total,
@@ -672,9 +690,11 @@
 
         // ========== Appointments ==========
         async function getAppointments() {
-            if (!TELEGRAM_USER_ID) return [];
+            // Используем TELEGRAM_USER_ID или временный ID из localStorage
+            const userId = TELEGRAM_USER_ID || localStorage.getItem('temp_user_id') || Date.now();
+            if (!userId) return [];
             try {
-                return await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                return await apiGet(`/appointments?telegram_id=${userId}`);
             } catch (e) {
                 console.error('Failed to load appointments', e);
                 return [];
@@ -777,6 +797,8 @@
 
         // ========== Init ==========
         async function init() {
+            // Сначала загружаем услуги из API
+            await loadServices();
             renderServices();
             setMinDate();
             initTabs();
@@ -787,6 +809,7 @@
             modalCloseBtn.addEventListener('click', closeModal);
             confirmPaymentBtn.addEventListener('click', confirmPayment);
             cancelPaymentBtn.addEventListener('click', () => paymentModal.classList.remove('active'));
+            fallbackSubmitBtn.addEventListener('click', submitBooking);
             if (tg?.MainButton) {
                 tg.MainButton.setParams({ color: '#24060a', text_color: '#fdcbe4' });
                 tg.MainButton.onClick(submitBooking);
