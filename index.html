@@ -152,6 +152,10 @@
 
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1001; }
 
+        .submit-section { margin-top: 24px; margin-bottom: 16px; }
+        .submit-btn { width: 100%; padding: 16px; font-family: var(--font-body); font-size: 1.1rem; font-weight: 600; color: var(--primary-button-text); background: var(--primary-button-bg); border: none; border-radius: 16px; cursor: pointer; transition: all 0.3s ease; box-shadow: var(--shadow-sm); }
+        .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+        .submit-btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: var(--shadow); }
         @media (max-width: 360px) { .time-grid { grid-template-columns: repeat(3, 1fr); } }
     </style>
 </head>
@@ -208,6 +212,10 @@
                         <label class="form-label">📞 Телефон</label>
                         <input type="tel" class="text-input" id="client-phone" placeholder="+7 (999) 123-45-67">
                     </div>
+                </section>
+
+                <section class="submit-section" id="submit-section">
+                    <button class="submit-btn" id="submit-btn" disabled>📝 Записаться</button>
                 </section>
 
                 <footer class="footer">
@@ -311,7 +319,6 @@
         let SERVICE_CATEGORIES = [];
         let servicesLoaded = false;
 
-        // Маппинг категорий с бэкенда на локальные ID
         const CATEGORY_MAP = {
             'natural': { id: 'own_nails', name: 'Свои ногти', hasSizes: false },
             'coating': { id: 'coating', name: 'Покрытие гель-лак', hasSizes: false },
@@ -325,7 +332,6 @@
         async function loadServices() {
             try {
                 const services = await apiGet('/services');
-                // Группируем услуги по категориям
                 const grouped = {};
                 services.forEach(svc => {
                     const catInfo = CATEGORY_MAP[svc.category] || { id: svc.category, name: svc.category, hasSizes: !!svc.size };
@@ -345,15 +351,21 @@
                         price: svc.price,
                         duration: svc.duration
                     });
+                    if (svc.size && !grouped[catId].hasSizes) {
+                        grouped[catId].hasSizes = true;
+                    }
                 });
-                // Сортируем категории: Свои ногти, Наращивание, Коррекция, Дизайн, Дополнительно
                 const order = ['own_nails', 'coating', 'extensions', 'correction', 'design', 'extra', 'removal'];
                 SERVICE_CATEGORIES = order.map(id => grouped[id]).filter(Boolean);
+                Object.values(grouped).forEach(cat => {
+                    if (!SERVICE_CATEGORIES.find(c => c.id === cat.id)) {
+                        SERVICE_CATEGORIES.push(cat);
+                    }
+                });
                 servicesLoaded = true;
                 console.log('✅ Услуги загружены из БД:', SERVICE_CATEGORIES);
             } catch (e) {
                 console.error('❌ Ошибка загрузки услуг:', e);
-                // Fallback - пустой массив, услуги не покажутся
                 SERVICE_CATEGORIES = [];
             }
         }
@@ -385,6 +397,7 @@
         const clientPhoneInput = document.getElementById('client-phone');
         const fallbackSubmit = document.getElementById('fallback-submit');
         const fallbackSubmitBtn = fallbackSubmit.querySelector('button');
+        const submitBtn = document.getElementById('submit-btn');
 
         // ========== Рендер услуг ==========
         function renderServices() {
@@ -463,7 +476,7 @@
 
         function toggleSubService(catId, svcId) {
             const cat = SERVICE_CATEGORIES.find(c => c.id === catId);
-            const svc = cat.services.find(s => s.id === svcId);
+            const svc = cat.services.find(s => s.id == svcId);
 
             // Убираем предыдущий выбор из этой категории
             state.selectedServices = state.selectedServices.filter(s => s.catId !== catId);
@@ -562,6 +575,15 @@
             const hasPhone = clientPhoneInput.value.trim().length > 0;
             const isValid = hasServices && hasDate && hasTime && hasName && hasPhone;
 
+            if (submitBtn) {
+                submitBtn.disabled = !isValid;
+                if (isValid) {
+                    submitBtn.textContent = `📝 Записаться — ${total} ₽`;
+                } else {
+                    submitBtn.textContent = `📝 Записаться`;
+                }
+            }
+
             if (tg?.MainButton) {
                 if (isValid) {
                     tg.MainButton.setText(`💅 Записаться — ${total} ₽`);
@@ -589,6 +611,17 @@
                 return;
             }
 
+            const appointmentData = {
+                telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || (localStorage.getItem('temp_user_id') || Date.now()),
+                selected_services: state.selectedServices,
+                appointment_date: state.selectedDate,
+                appointment_time: state.selectedTime,
+                total_price: total,
+                total_duration: duration,
+                client_full_name: name,
+                client_phone: phone
+            };
+
             // Загружаем реквизиты перед показом модалки
             await loadPaymentRequisites();
             renderPaymentDetails();
@@ -612,23 +645,25 @@
             const name = clientNameInput.value.trim();
             const phone = clientPhoneInput.value.trim();
 
-            // Используем TELEGRAM_USER_ID или генерируем временный ID для браузера
-            const userId = TELEGRAM_USER_ID || localStorage.getItem('temp_user_id') || Date.now();
-            if (!localStorage.getItem('temp_user_id') && !TELEGRAM_USER_ID) {
-                localStorage.setItem('temp_user_id', userId);
+            const appointmentData = {
+                telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || (localStorage.getItem('temp_user_id') || Date.now()),
+                selected_services: state.selectedServices,
+                appointment_date: state.selectedDate,
+                appointment_time: state.selectedTime,
+                total_price: total,
+                total_duration: duration,
+                client_full_name: name,
+                client_phone: phone
+            };
+
+            if (!localStorage.getItem('temp_user_id') && !window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+                localStorage.setItem('temp_user_id', appointmentData.telegram_id);
             }
 
             try {
                 await apiPost('/appointments', {
-                    telegram_id: userId,
-                    appointment_date: state.selectedDate,
-                    appointment_time: state.selectedTime,
+                    ...appointmentData,
                     price: total,
-                    total_price: total,
-                    total_duration: duration,
-                    selected_services: state.selectedServices,
-                    client_full_name: name,
-                    client_phone: phone,
                     phone: phone
                 });
             } catch (e) {
@@ -637,15 +672,7 @@
             }
 
             if (tg) {
-                tg.sendData(JSON.stringify({
-                    services: state.selectedServices,
-                    total_price: total,
-                    total_duration: duration,
-                    date: state.selectedDate,
-                    time: state.selectedTime,
-                    client_full_name: name,
-                    client_phone: phone
-                }));
+                tg.sendData(JSON.stringify(appointmentData));
             }
 
             showSuccessModal({
@@ -810,6 +837,9 @@
             confirmPaymentBtn.addEventListener('click', confirmPayment);
             cancelPaymentBtn.addEventListener('click', () => paymentModal.classList.remove('active'));
             fallbackSubmitBtn.addEventListener('click', submitBooking);
+            if (submitBtn) {
+                submitBtn.addEventListener('click', submitBooking);
+            }
             if (tg?.MainButton) {
                 tg.MainButton.setParams({ color: '#24060a', text_color: '#fdcbe4' });
                 tg.MainButton.onClick(submitBooking);
