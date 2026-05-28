@@ -320,53 +320,91 @@
         let servicesLoaded = false;
 
         const CATEGORY_MAP = {
-            'Свои ногти': { id: 'own_nails', name: 'Свои ногти', hasSizes: false },
+            // Русские названия (обратная совместимость)
+            'Свои ногти': { id: 'natural', name: 'Свои ногти', hasSizes: false },
             'Покрытие гель-лак': { id: 'coating', name: 'Покрытие гель-лак', hasSizes: false },
-            'Наращивание': { id: 'extensions', name: 'Наращивание', hasSizes: true },
+            'Наращивание': { id: 'extension', name: 'Наращивание', hasSizes: true },
             'Коррекция': { id: 'correction', name: 'Коррекция', hasSizes: true },
             'Дизайн': { id: 'design', name: 'Дизайн', hasSizes: true },
-            'Дополнительно': { id: 'extra', name: 'Дополнительно', hasSizes: false },
-            'Снятие': { id: 'removal', name: 'Снятие', hasSizes: false }
+            'Дополнительно': { id: 'additional', name: 'Дополнительно', hasSizes: false },
+            'Снятие': { id: 'removal', name: 'Снятие', hasSizes: false },
+            // Английские названия (как в БД)
+            'natural': { id: 'natural', name: 'Свои ногти', hasSizes: false },
+            'coating': { id: 'coating', name: 'Покрытие гель-лак', hasSizes: false },
+            'extension': { id: 'extension', name: 'Наращивание', hasSizes: true },
+            'correction': { id: 'correction', name: 'Коррекция', hasSizes: true },
+            'design': { id: 'design', name: 'Дизайн', hasSizes: true },
+            'additional': { id: 'additional', name: 'Дополнительно', hasSizes: false },
+            'removal': { id: 'removal', name: 'Снятие', hasSizes: false }
         };
 
+        // Fallback-услуги на случай недоступности API
+        const DEFAULT_SERVICES = [
+            { id: 1, category: 'natural', name: 'Маникюр (без покрытия)', size: null, price: 800, duration: 60 },
+            { id: 2, category: 'coating', name: 'Покрытие гель-лак (снятие + комби-маникюр + покрытие)', size: null, price: 1800, duration: 90 },
+            { id: 3, category: 'extension', name: 'Наращивание S', size: 'S', price: 2500, duration: 120 },
+            { id: 4, category: 'extension', name: 'Наращивание M', size: 'M', price: 2800, duration: 130 },
+            { id: 5, category: 'extension', name: 'Наращивание XL', size: 'XL', price: 3300, duration: 150 },
+            { id: 6, category: 'correction', name: 'Коррекция S', size: 'S', price: 2000, duration: 90 },
+            { id: 7, category: 'correction', name: 'Коррекция M', size: 'M', price: 2300, duration: 100 },
+            { id: 8, category: 'correction', name: 'Коррекция XL', size: 'XL', price: 2700, duration: 120 },
+            { id: 9, category: 'design', name: 'Дизайн Light', size: 'light', price: 100, duration: 15 },
+            { id: 10, category: 'design', name: 'Дизайн Medium', size: 'medium', price: 200, duration: 30 },
+            { id: 11, category: 'design', name: 'Дизайн Hard', size: 'hard', price: 300, duration: 45 },
+            { id: 12, category: 'additional', name: 'Когти (любая длина, любой дизайн)', size: null, price: 3000, duration: 150 },
+            { id: 13, category: 'removal', name: 'Снятие чужого покрытия', size: null, price: 0, duration: 30 },
+            { id: 14, category: 'removal', name: 'Снятие чужого наращивания', size: null, price: 200, duration: 45 }
+        ];
+
+        function processServices(services) {
+            const grouped = {};
+            services.forEach(svc => {
+                const catInfo = CATEGORY_MAP[svc.category] || { id: svc.category, name: svc.category, hasSizes: !!svc.size };
+                const catId = catInfo.id;
+                if (!grouped[catId]) {
+                    grouped[catId] = {
+                        id: catId,
+                        name: catInfo.name,
+                        hasSizes: catInfo.hasSizes,
+                        services: []
+                    };
+                }
+                grouped[catId].services.push({
+                    id: svc.id,
+                    name: svc.name,
+                    size: svc.size,
+                    price: svc.price,
+                    duration: svc.duration
+                });
+                if (svc.size && !grouped[catId].hasSizes) {
+                    grouped[catId].hasSizes = true;
+                }
+            });
+            const order = ['natural', 'coating', 'extension', 'correction', 'design', 'additional', 'removal'];
+            let result = order.map(id => grouped[id]).filter(Boolean);
+            Object.values(grouped).forEach(cat => {
+                if (!result.find(c => c.id === cat.id)) {
+                    result.push(cat);
+                }
+            });
+            return result;
+        }
+
         async function loadServices() {
+            servicesGrid.innerHTML = '<div class="empty-state" style="padding: 30px 20px;"><div class="empty-state-icon">⏳</div><p>Загрузка услуг...</p></div>';
             try {
                 const services = await apiGet('/services');
-                const grouped = {};
-                services.forEach(svc => {
-                    const catInfo = CATEGORY_MAP[svc.category] || { id: svc.category, name: svc.category, hasSizes: !!svc.size };
-                    const catId = catInfo.id;
-                    if (!grouped[catId]) {
-                        grouped[catId] = {
-                            id: catId,
-                            name: catInfo.name,
-                            hasSizes: catInfo.hasSizes,
-                            services: []
-                        };
-                    }
-                    grouped[catId].services.push({
-                        id: svc.id,
-                        name: svc.name,
-                        size: svc.size,
-                        price: svc.price,
-                        duration: svc.duration
-                    });
-                    if (svc.size && !grouped[catId].hasSizes) {
-                        grouped[catId].hasSizes = true;
-                    }
-                });
-                const order = ['own_nails', 'coating', 'extensions', 'correction', 'design', 'extra', 'removal'];
-                SERVICE_CATEGORIES = order.map(id => grouped[id]).filter(Boolean);
-                Object.values(grouped).forEach(cat => {
-                    if (!SERVICE_CATEGORIES.find(c => c.id === cat.id)) {
-                        SERVICE_CATEGORIES.push(cat);
-                    }
-                });
+                if (!services || !services.length) {
+                    throw new Error('Пустой список услуг от API');
+                }
+                SERVICE_CATEGORIES = processServices(services);
                 servicesLoaded = true;
                 console.log('✅ Услуги загружены из БД:', SERVICE_CATEGORIES);
             } catch (e) {
-                console.error('❌ Ошибка загрузки услуг:', e);
-                SERVICE_CATEGORIES = [];
+                console.error('❌ Ошибка загрузки услуг из API, используем fallback:', e);
+                SERVICE_CATEGORIES = processServices(DEFAULT_SERVICES);
+                servicesLoaded = true;
+                console.log('⚠️ Использованы fallback-услуги:', SERVICE_CATEGORIES);
             }
         }
 
@@ -400,9 +438,25 @@
         const submitBtn = document.getElementById('submit-btn');
 
         // ========== Рендер услуг ==========
+        function formatPriceRange(services) {
+            if (!services || services.length === 0) return '';
+            const prices = services.map(s => s.price).sort((a, b) => a - b);
+            if (prices.length === 1) return `${prices[0]} ₽`;
+            const min = prices[0];
+            const max = prices[prices.length - 1];
+            if (min === max) return `${min} ₽`;
+            return `от ${min} ₽`;
+        }
+
         function renderServices() {
+            if (!SERVICE_CATEGORIES || SERVICE_CATEGORIES.length === 0) {
+                servicesGrid.innerHTML = '<div class="empty-state" style="padding: 30px 20px;"><div class="empty-state-icon">⚠️</div><p>Не удалось загрузить услуги. Попробуйте обновить страницу.</p></div>';
+                return;
+            }
+
             servicesGrid.innerHTML = SERVICE_CATEGORIES.map(cat => {
-                const hasSub = cat.hasSizes;
+                const servicesList = cat.services || [];
+                const hasSub = servicesList.length > 1;
                 const isSelected = state.selectedServices.some(s => s.catId === cat.id);
                 const selectedSub = state.selectedServices.find(s => s.catId === cat.id);
 
@@ -411,14 +465,14 @@
                     <div class="service-header">
                         <div class="service-info">
                             <div class="service-name">${cat.name}</div>
-                            ${!hasSub ? `<div class="service-price">от ${cat.services[0].price} ₽</div>` : ''}
+                            ${!hasSub && servicesList.length > 0 ? `<div class="service-price">${formatPriceRange(servicesList)}</div>` : ''}
                         </div>
                     </div>
                     ${hasSub ? `
                     <div class="sub-services ${isSelected ? 'visible' : ''}" id="sub-${cat.id}">
-                        ${cat.services.map(sub => `
+                        ${servicesList.map(sub => `
                             <div class="sub-service-option ${selectedSub && selectedSub.serviceId === sub.id ? 'selected' : ''}" data-cat-id="${cat.id}" data-svc-id="${sub.id}">
-                                <span class="sub-service-name">${sub.size} — ${sub.name}</span>
+                                <span class="sub-service-name">${sub.size ? sub.size + ' — ' : ''}${sub.name}</span>
                                 <span class="sub-service-price">${sub.price} ₽</span>
                             </div>
                         `).join('')}
@@ -428,11 +482,12 @@
                 `;
             }).join('');
 
-            // Клики по категориям без размеров
+            // Клики по категориям
             document.querySelectorAll('.service-card[data-cat-id]').forEach(card => {
                 const catId = card.dataset.catId;
                 const cat = SERVICE_CATEGORIES.find(c => c.id === catId);
-                if (!cat.hasSizes) {
+                const servicesList = cat.services || [];
+                if (servicesList.length <= 1) {
                     card.addEventListener('click', () => toggleSimpleService(cat));
                 } else {
                     card.addEventListener('click', (e) => {
