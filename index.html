@@ -575,7 +575,9 @@
 
             if (state.selectedDate) {
                 try {
+                    console.log('[handleDateChange] Fetching slots for date:', state.selectedDate);
                     const data = await apiGet(`/available-slots?date=${state.selectedDate}`);
+                    console.log('[handleDateChange] Received data:', data);
                     if (!data.is_working) {
                         dayOffNotice.classList.add('visible');
                         timeGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">😴</div><p>Мастер не работает в этот день</p></div>';
@@ -583,8 +585,10 @@
                     }
                     renderTimeSlots(data.slots || []);
                 } catch (e) {
-                    console.error('Failed to load slots', e);
-                    timeGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">⚠️</div><p>Ошибка загрузки слотов</p></div>';
+                    console.error('[handleDateChange] Failed to load slots:', e);
+                    console.error('[handleDateChange] Error details:', e.message, e.stack);
+                    const errorMsg = e.message || 'Неизвестная ошибка';
+                    timeGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1; padding: 20px;"><div class="empty-state-icon">⚠️</div><p>Ошибка загрузки слотов</p><small style="color:#e74c3c">${errorMsg}</small></div>`;
                 }
             }
             if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
