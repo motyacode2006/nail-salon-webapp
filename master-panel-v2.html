@@ -636,7 +636,7 @@
             const today = getToday();
 
             try {
-                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                const appointments = await apiGet(`/appointments?telegram_id=${EFFECTIVE_USER_ID}`);
                 const todayApts = appointments.filter(a => a.appointment_date === today);
                 appointmentsData = appointments;
 
@@ -700,7 +700,7 @@
             const container = document.getElementById('all-appointments');
 
             try {
-                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                const appointments = await apiGet(`/appointments?telegram_id=${EFFECTIVE_USER_ID}`);
                 const future = appointments.filter(a => {
                     if (currentFilter !== 'all' && a.status !== currentFilter) return false;
                     return a.appointment_date >= getToday();
@@ -931,7 +931,7 @@
 
         async function exportToCSV() {
             try {
-                const appointments = await apiGet(`/appointments?telegram_id=${TELEGRAM_USER_ID}`);
+                const appointments = await apiGet(`/appointments?telegram_id=${EFFECTIVE_USER_ID}`);
 
                 let csv = 'Дата,Время,Клиент,Телефон,Услуги,Сумма,Статус\n';
                 appointments.forEach(apt => {
