@@ -93,6 +93,7 @@
         .sub-service-option { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin: 6px 0; background: rgba(255,255,255,0.6); border-radius: 12px; cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
         .sub-service-option:hover { background: rgba(249,223,243,0.7); }
         .sub-service-option.selected { border-color: #b976ae; background: rgba(249,223,243,0.95); }
+        .sub-service-option.selected::after { content: '✓'; color: #8f4b86; font-weight: 700; margin-left: 8px; }
         .sub-service-name { font-size: 0.9rem; color: var(--feature-title-color); }
         .sub-service-price { font-weight: 600; color: var(--color-2); }
         .size-hint { font-size: 0.8rem; color: var(--plum-500); background: rgba(201,140,189,0.12); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; }
@@ -559,15 +560,17 @@
             const cat = SERVICE_CATEGORIES.find(c => c.id === catId);
             const svc = cat.services.find(s => s.id == svcId);
 
+            // svcId из dataset приходит строкой — храним числовой id из данных,
+            // иначе сравнение в renderServices (===) не срабатывает и выбор не подсвечивается
+            const wasSelected = state.selectedServices.some(s => s.catId === catId && s.serviceId === svc.id);
+
             // Убираем предыдущий выбор из этой категории
             state.selectedServices = state.selectedServices.filter(s => s.catId !== catId);
 
-            // Добавляем новый (если не был выбран тот же — toggle)
-            const alreadySelected = state.selectedServices.find(s => s.serviceId === svcId);
-            if (!alreadySelected) {
+            if (!wasSelected) {
                 state.selectedServices.push({
                     catId: catId,
-                    serviceId: svcId,
+                    serviceId: svc.id,
                     name: svc.name,
                     price: svc.price,
                     duration: svc.duration
