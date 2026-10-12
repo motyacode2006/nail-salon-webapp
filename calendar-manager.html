@@ -4,23 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GoNails - Расписание</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --color-1: #24060a;
-            --color-2: #5f1227;
-            --color-3: #753547;
-            --color-4: #a4848f;
-            --color-5: #fdcbe4;
-            --primary-button-bg: #24060a;
-            --primary-button-text: #fdcbe4;
+            --color-1: #3a1038;
+            --color-2: #6b2160;
+            --color-3: #8f4b86;
+            --color-4: #c9a6c4;
+            --color-5: #fdeefb;
+            --primary-button-bg: #3a1038;
+            --primary-button-text: #fdeefb;
             --secondary-button-bg: transparent;
-            --secondary-button-text: #24060a;
-            --header-bg: linear-gradient(135deg, #5f1227 0%, #753547 100%);
-            --working-day: #24060a;
-            --dayoff: #a4848f;
-            --today-border: #5f1227;
-            --selected-bg: linear-gradient(135deg, #5f1227 0%, #753547 100%);
+            --secondary-button-text: #3a1038;
+            --header-bg: linear-gradient(135deg, #d995c2 0%, #b976ae 50%, #96619e 100%);
+            --working-day: #3a1038;
+            --dayoff: #c9a6c4;
+            --today-border: #6b2160;
+            --selected-bg: linear-gradient(135deg, #6b2160 0%, #8f4b86 100%);
         }
         
         * {
@@ -31,7 +34,8 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--color-5);
+            background: linear-gradient(165deg, #fdeefb 0%, #fae6f5 45%, #f1e6fc 100%);
+            background-attachment: fixed;
             color: var(--color-1);
             min-height: 100vh;
             padding-bottom: 100px;
@@ -47,10 +51,14 @@
         }
         
         .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
             font-size: 22px;
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 5px;
+            text-shadow: 0 2px 8px rgba(58,16,56,0.25);
         }
+        .header h1::before { content: 'º6 '; opacity: 0.85; }
         
         .header p {
             font-size: 13px;
@@ -90,10 +98,11 @@
         
         .quick-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             padding: 15px 20px;
-            overflow-x: auto;
-            background: white;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(8px);
         }
         
         .quick-btn {
@@ -176,7 +185,7 @@
         .day.selected {
             background: var(--selected-bg);
             color: var(--color-5);
-            box-shadow: 0 4px 15px rgba(95, 18, 39, 0.3);
+            box-shadow: 0 4px 15px rgba(143, 75, 134, 0.3);
         }
         
         .day.other-month {
@@ -237,7 +246,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(36, 6, 10, 0.5);
+            background: rgba(58, 16, 56, 0.5);
             display: none;
             align-items: flex-end;
             justify-content: center;
@@ -383,7 +392,8 @@
         }
         
         .modal-btn.secondary {
-            background: var(--color-5);
+            background: linear-gradient(165deg, #fdeefb 0%, #fae6f5 45%, #f1e6fc 100%);
+            background-attachment: fixed;
             color: var(--color-1);
             border: 2px solid var(--color-4);
         }

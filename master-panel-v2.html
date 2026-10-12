@@ -4,45 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GoNails - Панель мастера</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --color-1: #24060a;
-            --color-2: #5f1227;
-            --color-3: #753547;
-            --color-4: #a4848f;
-            --color-5: #fdcbe4;
-            --bg-primary: #fff5f8;
+            --color-1: #3a1038;
+            --color-2: #6b2160;
+            --color-3: #8f4b86;
+            --color-4: #c9a6c4;
+            --color-5: #fdeefb;
+            --bg-primary: #fdeefb;
             --bg-card: #ffffff;
-            --text-primary: #24060a;
-            --text-secondary: #5f1227;
-            --accent: #5f1227;
+            --text-primary: #3a1038;
+            --text-secondary: #6b2160;
+            --accent: #6b2160;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #f43f5e;
-            --shadow: 0 4px 20px rgba(95, 18, 39, 0.15);
+            --shadow: 0 4px 20px rgba(143, 75, 134, 0.15);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(165deg, #fdeefb 0%, #fae6f5 45%, #f1e6fc 100%);
+            background-attachment: fixed;
             color: var(--text-primary);
             min-height: 100vh;
             padding-bottom: 100px;
         }
 
         .header {
-            background: linear-gradient(135deg, var(--color-2) 0%, var(--color-3) 100%);
+            background: linear-gradient(135deg, #d995c2 0%, #b976ae 50%, #96619e 100%);
             padding: 20px;
-            color: var(--color-5);
+            color: #ffffff;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 4px 18px rgba(157, 99, 166, 0.25);
         }
 
-        .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 5px; }
+        .header h1 { font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; font-weight: 600; margin-bottom: 5px; text-shadow: 0 2px 8px rgba(58,16,56,0.25); }
+        .header h1::before { content: '✦ '; font-style: normal; opacity: 0.85; }
         .header p { font-size: 14px; opacity: 0.9; }
 
         .tabs {
@@ -72,7 +78,7 @@
         .tab.active {
             color: var(--accent);
             border-bottom: 3px solid var(--accent);
-            background: rgba(95, 18, 39, 0.05);
+            background: rgba(143, 75, 134, 0.05);
         }
 
         .content { padding: 20px; }
@@ -271,7 +277,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(36, 6, 10, 0.85);
+            background: rgba(58, 16, 56, 0.85);
             backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
@@ -326,7 +332,7 @@
             transition: all 0.3s;
         }
 
-        .radio-option.selected { border-color: var(--accent); background: rgba(95, 18, 39, 0.05); }
+        .radio-option.selected { border-color: var(--accent); background: rgba(143, 75, 134, 0.05); }
         .radio-option input { display: none; }
 
         .time-slot-list { margin-top: 10px; }
